@@ -32,20 +32,20 @@ from PyQt5.QtWidgets import (QComboBox,  QTabWidget,
                              QPushButton, QWidget)
 
 from electrum.i18n import _
-from electrum import util, coinchooser, paymentrequest
-from electrum.util import base_units_list
+from electrum import util, coinchooser, paymentrequest, constants
 
 from .util import (ColorScheme, WindowModalDialog, HelpLabel, Buttons,
                    CloseButton)
 
 from electrum.i18n import languages
-from electrum import qrscanner
+from electrum import qrscanner, constants
 
 if TYPE_CHECKING:
     from electrum.simple_config import SimpleConfig
     from .main_window import ElectrumWindow
 
 
+# @TODO add support for blockchain currency selection here
 class SettingsDialog(WindowModalDialog):
 
     def __init__(self, parent: 'ElectrumWindow', config: 'SimpleConfig'):
@@ -179,9 +179,10 @@ you close all your wallet windows. Use this to keep your local watchtower runnin
         oa_widgets.append((alias_label, self.alias_e))
 
         # units
-        units = base_units_list
+        # @TODO Add Support for different implementations of COIN here
+        units = constants.net.BASE_UNITS_LIST
         msg = (_('Base unit of your wallet.')
-               + '\n1 BTC = 1000 mBTC. 1 mBTC = 1000 bits. 1 bit = 100 sat.\n'
+               + f'\n1 {constants.net.SHORT_CODE} = 1000 m{constants.net.SHORT_CODE}. 1 m{constants.net.SHORT_CODE} = 1000 bits. 1 bit = 100 sat.\n'
                + _('This setting affects the Send tab, and all balance related fields.'))
         unit_label = HelpLabel(_('Base unit') + ':', msg)
         unit_combo = QComboBox()

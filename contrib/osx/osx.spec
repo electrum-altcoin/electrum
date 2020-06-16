@@ -70,12 +70,13 @@ hiddenimports += collect_submodules('bitbox02')
 hiddenimports += ['PyQt5.QtPrintSupport']  # needed by Revealer
 
 datas = [
-    (electrum + PYPKG + '/*.json', PYPKG),
     (electrum + PYPKG + '/lnwire/*.csv', PYPKG + '/lnwire'),
     (electrum + PYPKG + '/wordlist/english.txt', PYPKG + '/wordlist'),
     (electrum + PYPKG + '/locale', PYPKG + '/locale'),
     (electrum + PYPKG + '/plugins', PYPKG + '/plugins'),
     (electrum + PYPKG + '/gui/icons', PYPKG + '/gui/icons'),
+    (electrum + PYPKG + '/checkpoints', PYPKG + '/checkpoints'),
+    (electrum + PYPKG + '/servers', PYPKG + '/servers'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('safetlib')

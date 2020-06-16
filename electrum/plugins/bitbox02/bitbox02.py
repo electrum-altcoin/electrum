@@ -184,10 +184,12 @@ class BitBox02Client(HardwareClientBase):
             )
 
     def coin_network_from_electrum_network(self) -> int:
-        if constants.net.TESTNET:
+        if constants.net == constants.BitcoinTestnet:
             return bitbox02.btc.TBTC
-        return bitbox02.btc.BTC
-
+        elif constants.net == constants.BitcoinMainnet:
+            return bitbox02.btc.BTC
+        raise Exception('Network Not Supported')
+    
     def get_password_for_storage_encryption(self) -> str:
         derivation = get_derivation_used_for_hw_device_encryption()
         derivation_list = bip32.convert_bip32_path_to_list_of_uint32(derivation)

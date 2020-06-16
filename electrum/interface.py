@@ -589,14 +589,14 @@ class Interface(Logger):
 
     async def request_fee_estimates(self):
         from .simple_config import FEE_ETA_TARGETS
-        from .bitcoin import COIN
+        from . import constants
         while True:
             async with TaskGroup() as group:
                 fee_tasks = []
                 for i in FEE_ETA_TARGETS:
                     fee_tasks.append((i, await group.spawn(self.session.send_request('blockchain.estimatefee', [i]))))
             for nblock_target, task in fee_tasks:
-                fee = int(task.result() * COIN)
+                fee = int(task.result() * constants.net.COIN)
                 if fee < 0: continue
                 self.fee_estimates_eta[nblock_target] = fee
             self.network.update_fee_estimates()

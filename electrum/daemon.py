@@ -40,7 +40,7 @@ import aiohttp
 from aiohttp import web, client_exceptions
 from aiorpcx import TaskGroup
 
-from . import util
+from . import util, constants
 from .network import Network
 from .util import (json_decode, to_bytes, to_string, profiler, standardize_path, constant_time_compare)
 from .invoices import PR_PAID, PR_EXPIRED
@@ -364,7 +364,7 @@ class PayServer(Logger):
         if not request:
             return web.HTTPNotFound()
         pr = make_request(self.config, request)
-        return web.Response(body=pr.SerializeToString(), content_type='application/bitcoin-paymentrequest')
+        return web.Response(body=pr.SerializeToString(), content_type=constants.net.PAYMENT_REQUEST_TYPE)
 
     async def get_status(self, request):
         ws = web.WebSocketResponse()

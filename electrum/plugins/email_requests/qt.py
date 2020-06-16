@@ -52,7 +52,7 @@ from electrum.i18n import _
 from electrum.logging import Logger
 from electrum.wallet import Abstract_Wallet
 from electrum.invoices import OnchainInvoice
-
+from electrum import constants
 
 class Processor(threading.Thread, Logger):
     polling_interval = 5*60
@@ -85,7 +85,7 @@ class Processor(threading.Thread, Logger):
                 p = [p]
                 continue
             for item in p:
-                if item.get_content_type() == "application/bitcoin-paymentrequest":
+                if item.get_content_type() == constants.net.APPLICATION_PAYMENT_REQUEST_TYPE:
                     pr_str = item.get_payload()
                     pr_str = base64.b64decode(pr_str)
                     self.on_receive(pr_str)
@@ -118,7 +118,7 @@ class Processor(threading.Thread, Logger):
         part = MIMEBase('application', "bitcoin-paymentrequest")
         part.set_payload(payment_request)
         encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="payreq.btc"')
+        part.add_header('Content-Disposition', f'attachment; filename="payreq.{constants.net.SHORT_CODE.lower()}"')
         msg.attach(part)
         try:
             s = smtplib.SMTP_SSL(self.imap_server, timeout=2)

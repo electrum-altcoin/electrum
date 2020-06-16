@@ -65,7 +65,7 @@ extras_require['fast'] = extras_require['crypto']
 
 
 setup(
-    name="Electrum",
+    name="Electrum-Altcoin",
     version=version.ELECTRUM_VERSION,
     python_requires='>={}'.format(MIN_PYTHON_VERSION),
     install_requires=requirements,
@@ -92,10 +92,12 @@ setup(
     },
     scripts=['electrum/electrum'],
     data_files=data_files,
-    description="Lightweight Bitcoin Wallet",
+    description="Lightweight CryptoCurrency Wallet for Multiple chains",
     author="Thomas Voegtlin",
     author_email="thomasv@electrum.org",
+    maintainer="Ahmed Bodiwala",
+    maintainer_email="ahmedbodi@crypto-expert.com",
     license="MIT Licence",
-    url="https://electrum.org",
-    long_description="""Lightweight Bitcoin Wallet""",
+    url="https://github.com/electrum-altcoin/electrum",
+    long_description="""Lightweight CryptoCurrency Wallet for multiple chains""",
 )

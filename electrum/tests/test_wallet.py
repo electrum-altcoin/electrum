@@ -7,13 +7,13 @@ from decimal import Decimal
 import time
 
 from io import StringIO
+from electrum import constants
 from electrum.storage import WalletStorage
 from electrum.wallet_db import FINAL_SEED_VERSION
 from electrum.wallet import (Abstract_Wallet, Standard_Wallet, create_new_wallet,
                              restore_wallet_from_text, Imported_Wallet)
 from electrum.exchange_rate import ExchangeBase, FxThread
 from electrum.util import TxMinedInfo
-from electrum.bitcoin import COIN
 from electrum.wallet_db import WalletDB
 from electrum.simple_config import SimpleConfig
 
@@ -121,7 +121,7 @@ ccy = 'TEST'
 class TestFiat(ElectrumTestCase):
     def setUp(self):
         super().setUp()
-        self.value_sat = COIN
+        self.value_sat = constants.net.COIN
         self.fiat_value = {}
         self.wallet = FakeWallet(fiat_value=self.fiat_value)
         self.fx = FakeFxThread(FakeExchange(Decimal('1000.001')))

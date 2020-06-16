@@ -46,7 +46,6 @@ from .util import (log_exceptions, ignore_exceptions,
                    bfh, SilentTaskGroup, make_aiohttp_session, send_exception_to_crash_reporter,
                    is_hash256_str, is_non_negative_integer, MyEncoder, NetworkRetryManager)
 
-from .bitcoin import COIN
 from . import constants
 from . import blockchain
 from . import bitcoin
@@ -442,7 +441,7 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
             if relayfee is None:
                 self.relay_fee = None
             else:
-                relayfee = int(relayfee * COIN)
+                relayfee = int(relayfee * constants.net.COIN)
                 self.relay_fee = max(0, relayfee)
 
         async with TaskGroup() as group:

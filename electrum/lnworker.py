@@ -29,7 +29,6 @@ from .invoices import PR_TYPE_LN, PR_UNPAID, PR_EXPIRED, PR_PAID, PR_INFLIGHT, P
 from .util import NetworkRetryManager, JsonRPCClient
 from .lnutil import LN_MAX_FUNDING_SAT
 from .keystore import BIP32_KeyStore
-from .bitcoin import COIN
 from .transaction import Transaction
 from .crypto import sha256
 from .bip32 import BIP32Node
@@ -816,7 +815,7 @@ class LNWallet(LNWorker):
         lnaddr = self._check_invoice(invoice, amount_sat)
         payment_hash = lnaddr.paymenthash
         key = payment_hash.hex()
-        amount = int(lnaddr.amount * COIN)
+        amount = int(lnaddr.amount * constants.net.COIN)
         status = self.get_payment_status(payment_hash)
         if status == PR_PAID:
             raise PaymentFailure(_("This invoice has been paid already"))
@@ -865,7 +864,7 @@ class LNWallet(LNWorker):
         await peer.initialized
         htlc = peer.pay(route=route,
                         chan=chan,
-                        amount_msat=int(lnaddr.amount * COIN * 1000),
+                        amount_msat=int(lnaddr.amount * constants.net.COIN * 1000),
                         payment_hash=lnaddr.paymenthash,
                         min_final_cltv_expiry=lnaddr.get_min_final_cltv_expiry(),
                         payment_secret=lnaddr.payment_secret)
@@ -962,7 +961,7 @@ class LNWallet(LNWorker):
         if addr.is_expired():
             raise InvoiceError(_("This invoice has expired"))
         if amount_sat:
-            addr.amount = Decimal(amount_sat) / COIN
+            addr.amount = Decimal(amount_sat) / constants.net.COIN
         if addr.amount is None:
             raise InvoiceError(_("Missing amount"))
         if addr.get_min_final_cltv_expiry() > lnutil.NBLOCK_CLTV_EXPIRY_TOO_FAR_INTO_FUTURE:
@@ -974,7 +973,7 @@ class LNWallet(LNWorker):
     @profiler
     def _create_route_from_invoice(self, decoded_invoice: 'LnAddr',
                                    *, full_path: LNPaymentPath = None) -> LNPaymentRoute:
-        amount_msat = int(decoded_invoice.amount * COIN * 1000)
+        amount_msat = int(decoded_invoice.amount * contants.net.COIN * 1000)
         invoice_pubkey = decoded_invoice.pubkey.serialize()
         # use 'r' field from invoice
         route = None  # type: Optional[LNPaymentRoute]
@@ -1081,7 +1080,7 @@ class LNWallet(LNWorker):
         payment_hash = sha256(payment_preimage)
 
         info = PaymentInfo(payment_hash, amount_sat, RECEIVED, PR_UNPAID)
-        amount_btc = amount_sat/Decimal(COIN) if amount_sat else None
+        amount_btc = amount_sat/Decimal(constants.net.COIN) if amount_sat else None
         if expiry == 0:
             expiry = LN_EXPIRY_NEVER
         lnaddr = LnAddr(paymenthash=payment_hash,

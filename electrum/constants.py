@@ -40,13 +40,15 @@ def read_json(filename, default):
     return r
 
 
-GIT_REPO_URL = "https://github.com/spesmilo/electrum"
-GIT_REPO_ISSUES_URL = "https://github.com/spesmilo/electrum/issues"
+GIT_REPO_URL = "https://github.com/electrum-altcoin/electrum"
+GIT_REPO_ISSUES_URL = "https://github.com/electrum-altcoin/electrum/issues"
 
 
 class AbstractNet:
 
     BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
+    CHECKPOINTS = []
+    GENESIS = None
 
     @classmethod
     def max_checkpoint(cls) -> int:
@@ -59,6 +61,9 @@ class AbstractNet:
 
 class BitcoinMainnet(AbstractNet):
 
+    NAME = 'Bitcoin'
+    NAME_LOWER = 'bitcoin'
+    SHORT_CODE = 'BTC'
     TESTNET = False
     WIF_PREFIX = 0x80
     ADDRTYPE_P2PKH = 0
@@ -66,9 +71,10 @@ class BitcoinMainnet(AbstractNet):
     SEGWIT_HRP = "bc"
     GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
     DEFAULT_PORTS = {'t': '50001', 's': '50002'}
-    DEFAULT_SERVERS = read_json('servers.json', {})
-    CHECKPOINTS = read_json('checkpoints.json', [])
+    DEFAULT_SERVERS = read_json('servers/Bitcoin-Mainnet.json', {})
+    CHECKPOINTS = read_json('checkpoints/Bitcoin-Mainnet.json', [])
     BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 497000
+    DATA_DIR = 'bitcoin'
 
     XPRV_HEADERS = {
         'standard':    0x0488ade4,  # xprv
@@ -92,10 +98,61 @@ class BitcoinMainnet(AbstractNet):
         'nodes.lightning.directory.',
         'lseed.bitcoinstats.com.',
     ]
+    PAYMENT_URI_PREFIX = 'bitcoin:'
+    APPLICATION_PAYMENT_REQUEST_TYPE = 'application/bitcoin-paymentrequest'
+    APPLICATION_PAYMENT_TYPE = 'application/bitcoin-payment'
+    APPLICATION_PAYMENT_ACK_TYPE = 'application/bitcoin-paymentack'
+    COINBASE_MATURITY = 100
+    COIN = 100000000
+    TOTAL_COIN_SUPPLY_LIMIT = 21000000
+    SIGNED_MESSAGE_PREFIX = b"\x18Bitcoin Signed Message:\n"
+
+    BASE_UNITS = {'BTC': 8, 'mBTC': 5, 'bits': 2, 'sat': 0}
+    BASE_UNITS_INVERSE = inv_dict(BASE_UNITS)
+    BASE_UNITS_LIST = ['BTC', 'mBTC', 'bits', 'sat']
+    DECIMAL_POINT_DEFAULT = 5  # mBTC
+    BLOCK_EXPLORERS = {
+        'Bitupper Explorer': ('https://bitupper.com/en/explorer/bitcoin/',
+                              {'tx': 'transactions/', 'addr': 'addresses/'}),
+        'Bitflyer.jp': ('https://chainflyer.bitflyer.jp/',
+                        {'tx': 'Transaction/', 'addr': 'Address/'}),
+        'Blockchain.info': ('https://blockchain.com/btc/',
+                            {'tx': 'tx/', 'addr': 'address/'}),
+        'blockchainbdgpzk.onion': ('https://blockchainbdgpzk.onion/',
+                                   {'tx': 'tx/', 'addr': 'address/'}),
+        'Blockstream.info': ('https://blockstream.info/',
+                             {'tx': 'tx/', 'addr': 'address/'}),
+        'Bitaps.com': ('https://btc.bitaps.com/',
+                       {'tx': '', 'addr': ''}),
+        'BTC.com': ('https://btc.com/',
+                    {'tx': '', 'addr': ''}),
+        'Chain.so': ('https://www.chain.so/',
+                     {'tx': 'tx/BTC/', 'addr': 'address/BTC/'}),
+        'Insight.is': ('https://insight.bitpay.com/',
+                       {'tx': 'tx/', 'addr': 'address/'}),
+        'TradeBlock.com': ('https://tradeblock.com/blockchain/',
+                           {'tx': 'tx/', 'addr': 'address/'}),
+        'BlockCypher.com': ('https://live.blockcypher.com/btc/',
+                            {'tx': 'tx/', 'addr': 'address/'}),
+        'Blockchair.com': ('https://blockchair.com/bitcoin/',
+                           {'tx': 'transaction/', 'addr': 'address/'}),
+        'blockonomics.co': ('https://www.blockonomics.co/',
+                            {'tx': 'api/tx?txid=', 'addr': '#/search?q='}),
+        'OXT.me': ('https://oxt.me/',
+                   {'tx': 'transaction/', 'addr': 'address/'}),
+        'smartbit.com.au': ('https://www.smartbit.com.au/',
+                            {'tx': 'tx/', 'addr': 'address/'}),
+        'mynode.local': ('http://mynode.local:3002/',
+                         {'tx': 'tx/', 'addr': 'address/'}),
+        'system default': ('blockchain:/',
+                           {'tx': 'tx/', 'addr': 'address/'}),
+    }
 
 
-class BitcoinTestnet(AbstractNet):
+class BitcoinTestnet(BitcoinMainnet):
 
+    NAME = 'Bitcoin Testnet'
+    NAME_LOWER = 'testnet bitcoin'
     TESTNET = True
     WIF_PREFIX = 0xef
     ADDRTYPE_P2PKH = 111
@@ -103,9 +160,13 @@ class BitcoinTestnet(AbstractNet):
     SEGWIT_HRP = "tb"
     GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
     DEFAULT_PORTS = {'t': '51001', 's': '51002'}
-    DEFAULT_SERVERS = read_json('servers_testnet.json', {})
-    CHECKPOINTS = read_json('checkpoints_testnet.json', [])
-
+    DEFAULT_SERVERS = read_json('servers/Bitcoin-Testnet.json', {})
+    CHECKPOINTS = read_json('checkpoints/Bitcoin-Testnet.json', [])
+    DATA_DIR = 'bitcoin-testnet'
+    BASE_UNITS = {'BTC': 8, 'mBTC': 5, 'bits': 2, 'sat': 0}
+    BASE_UNITS_INVERSE = inv_dict(BASE_UNITS)
+    BASE_UNITS_LIST = ['BTC', 'mBTC', 'bits', 'sat']
+    
     XPRV_HEADERS = {
         'standard':    0x04358394,  # tprv
         'p2wpkh-p2sh': 0x044a4e28,  # uprv
@@ -125,48 +186,57 @@ class BitcoinTestnet(AbstractNet):
     BIP44_COIN_TYPE = 1
     LN_REALM_BYTE = 1
     LN_DNS_SEEDS = [  # TODO investigate this again
-        #'test.nodes.lightning.directory.',  # times out.
-        #'lseed.bitcoinstats.com.',  # ignores REALM byte and returns mainnet peers...
+        # 'test.nodes.lightning.directory.',  # times out.
+        # 'lseed.bitcoinstats.com.',  # ignores REALM byte and returns mainnet peers...
     ]
+    BLOCK_EXPLORERS = {
+        'Bitaps.com': ('https://tbtc.bitaps.com/', {'tx': '', 'addr': ''}),
+        'BlockCypher.com': ('https://live.blockcypher.com/btc-testnet/', {'tx': 'tx/', 'addr': 'address/'}),
+        'Blockchain.info': ('https://www.blockchain.com/btctest/', {'tx': 'tx/', 'addr': 'address/'}),
+        'Blockstream.info': ('https://blockstream.info/testnet/', {'tx': 'tx/', 'addr': 'address/'}),
+        'smartbit.com.au': ('https://testnet.smartbit.com.au/', {'tx': 'tx/', 'addr': 'address/'}),
+        'system default': ('blockchain://000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943/', {'tx': 'tx/', 'addr': 'address/'}),
+    }
 
 
 class BitcoinRegtest(BitcoinTestnet):
-
+    NAME = 'Bitcoin Regtest'
+    NAME_LOWER = 'regtest bitcoin'
     SEGWIT_HRP = "bcrt"
     GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
-    DEFAULT_SERVERS = read_json('servers_regtest.json', {})
-    CHECKPOINTS = []
+    DEFAULT_SERVERS = read_json('servers/Bitcoin-Regtest.json', {})
     LN_DNS_SEEDS = []
-
+    DATA_DIR = 'bitcoin-regtest'
 
 class BitcoinSimnet(BitcoinTestnet):
-
+    NAME = 'Bitcoin Simnet'
+    NAME_LOWER = 'simnet bitcoin'
     WIF_PREFIX = 0x64
     ADDRTYPE_P2PKH = 0x3f
     ADDRTYPE_P2SH = 0x7b
     SEGWIT_HRP = "sb"
     GENESIS = "683e86bd5c6d110d91b94b97137ba6bfe02dbbdb8e3dff722a669b5d69d77af6"
-    DEFAULT_SERVERS = read_json('servers_regtest.json', {})
+    DEFAULT_SERVERS = read_json('servers/Bitcoin-Simnet.json', {})
     CHECKPOINTS = []
     LN_DNS_SEEDS = []
-
+    DATA_DIR = 'bitcoin-simnet'
 
 # don't import net directly, import the module instead (so that net is singleton)
-net = BitcoinMainnet
+networks = {
+    'Bitcoin': BitcoinMainnet,
+    'Bitcoin-Mainnet': BitcoinMainnet,
+    'Bitcoin-Testnet': BitcoinTestnet,
+    'Bitcoin-Regtest': BitcoinRegtest,
+    'Bitcoin-Simnet': BitcoinSimnet,
+}
 
-def set_simnet():
+net = networks['Bitcoin']
+
+
+def select_network(network='Bitcoin'):
+    if not network in networks:
+        raise Exception('Invalid Network. Available: {}'.format(
+            list(networks.keys())))
     global net
-    net = BitcoinSimnet
-
-def set_mainnet():
-    global net
-    net = BitcoinMainnet
-
-def set_testnet():
-    global net
-    net = BitcoinTestnet
-
-
-def set_regtest():
-    global net
-    net = BitcoinRegtest
+    net = networks.get(network, 'Bitcoin')
+    return

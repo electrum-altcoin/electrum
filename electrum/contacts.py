@@ -25,6 +25,7 @@ import re
 import dns
 from dns.exception import DNSException
 
+from . import constants
 from . import bitcoin
 from . import dnssec
 from .util import read_json_file, write_json_file, to_string
@@ -92,7 +93,7 @@ class Contacts(dict, Logger):
                 'type': 'openalias',
                 'validated': validated
             }
-        raise Exception("Invalid Bitcoin address or alias", k)
+        raise Exception(f"Invalid {constants.net.NAME} address or alias", k)
 
     def resolve_openalias(self, url):
         # support email-style addresses, per the OA standard
@@ -102,7 +103,7 @@ class Contacts(dict, Logger):
         except DNSException as e:
             self.logger.info(f'Error resolving openalias: {repr(e)}')
             return None
-        prefix = 'btc'
+        prefix = constants.net.SHORT_CODE.lower()
         for record in records:
             string = to_string(record.strings[0], 'utf8')
             if string.startswith('oa1:' + prefix):

@@ -9,9 +9,9 @@ import logging
 from typing import TYPE_CHECKING
 
 import electrum
-from electrum import util
+from electrum import constants, util
 from electrum.util import format_satoshis
-from electrum.bitcoin import is_address, COIN
+from electrum.bitcoin import is_address
 from electrum.transaction import PartialTxOutput
 from electrum.wallet import Wallet
 from electrum.storage import WalletStorage
@@ -149,11 +149,11 @@ class ElectrumGui:
                 msg = _("Synchronizing...")
             else:
                 c, u, x =  self.wallet.get_balance()
-                msg = _("Balance")+": %f  "%(Decimal(c) / COIN)
+                msg = _("Balance")+": %f  "%(Decimal(c) / constants.net.COIN)
                 if u:
-                    msg += "  [%f unconfirmed]"%(Decimal(u) / COIN)
+                    msg += "  [%f unconfirmed]"%(Decimal(u) / constants.net.COIN)
                 if x:
-                    msg += "  [%f unmatured]"%(Decimal(x) / COIN)
+                    msg += "  [%f unmatured]"%(Decimal(x) / constants.net.COIN)
         else:
             msg = _("Not connected")
 
@@ -349,15 +349,15 @@ class ElectrumGui:
 
     def do_send(self):
         if not is_address(self.str_recipient):
-            self.show_message(_('Invalid Bitcoin address'))
+            self.show_message(_(f'Invalid {constants.net.NAME} address'))
             return
         try:
-            amount = int(Decimal(self.str_amount) * COIN)
+            amount = int(Decimal(self.str_amount) * constants.net.COIN)
         except Exception:
             self.show_message(_('Invalid Amount'))
             return
         try:
-            fee = int(Decimal(self.str_fee) * COIN)
+            fee = int(Decimal(self.str_fee) * constants.net.COIN)
         except Exception:
             self.show_message(_('Invalid Fee'))
             return
@@ -434,13 +434,13 @@ class ElectrumGui:
                 self.network.run_from_another_thread(self.network.set_parameters(net_params))
 
     def settings_dialog(self):
-        fee = str(Decimal(self.config.fee_per_kb()) / COIN)
+        fee = str(Decimal(self.config.fee_per_kb()) / constants.net.COIN)
         out = self.run_dialog('Settings', [
             {'label':'Default fee', 'type':'satoshis', 'value': fee }
             ], buttons = 1)
         if out:
             if out.get('Default fee'):
-                fee = int(Decimal(out['Default fee']) * COIN)
+                fee = int(Decimal(out['Default fee']) * constants.net.COIN)
                 self.config.set_key('fee_per_kb', fee, True)
 
 

@@ -28,6 +28,7 @@ import binascii
 from pprint import pformat
 import logging
 
+from electrum import constants
 from electrum import bitcoin
 from electrum import lnpeer
 from electrum import lnchannel
@@ -44,7 +45,7 @@ from electrum.coinchooser import PRNG
 from . import ElectrumTestCase
 
 
-one_bitcoin_in_msat = bitcoin.COIN * 1000
+one_bitcoin_in_msat = constants.net.COIN * 1000
 
 def create_channel_state(funding_txid, funding_index, funding_sat, is_initiator, local_amount, remote_amount, privkeys, other_pubkeys, seed, cur, nex, other_node_id, l_dust, r_dust, l_csv, r_csv):
     assert local_amount > 0
@@ -119,7 +120,7 @@ def create_test_channels(*, feerate=6000, local_msat=None, remote_msat=None,
     random_gen = PRNG(random_seed)
     funding_txid = binascii.hexlify(random_gen.get_bytes(32)).decode("ascii")
     funding_index = 0
-    funding_sat = ((local_msat + remote_msat) // 1000) if local_msat is not None and remote_msat is not None else (bitcoin.COIN * 10)
+    funding_sat = ((local_msat + remote_msat) // 1000) if local_msat is not None and remote_msat is not None else (constants.net.COIN * 10)
     local_amount = local_msat if local_msat is not None else (funding_sat * 1000 // 2)
     remote_amount = remote_msat if remote_msat is not None else (funding_sat * 1000 // 2)
     alice_raw = [ bip32("m/" + str(i)) for i in range(5) ]

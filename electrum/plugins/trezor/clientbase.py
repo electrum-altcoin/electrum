@@ -1,7 +1,7 @@
 import time
 from struct import pack
 
-from electrum import ecc
+from electrum import ecc, constants
 from electrum.i18n import _
 from electrum.util import UserCancelled, UserFacingException
 from electrum.keystore import bip39_normalize_passphrase
@@ -279,7 +279,7 @@ class TrezorClientBase(HardwareClientBase, Logger):
             msg = _("Enter a passphrase to generate this wallet.  Each time "
                     "you use this wallet your {} will prompt you for the "
                     "passphrase.  If you forget the passphrase you cannot "
-                    "access the bitcoins in the wallet.").format(self.device)
+                    f"access the {constants.net.NAME_LOWER}s in the wallet.").format(self.device)
         else:
             msg = _("Enter the passphrase to unlock this wallet:")
 

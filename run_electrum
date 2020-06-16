@@ -331,22 +331,17 @@ if __name__ == '__main__':
     if not config_options.get('verbosity'):
         warnings.simplefilter('ignore', DeprecationWarning)
 
+    constants.select_network(config_options.get('network'))
+
     # check uri
     uri = config_options.get('url')
     if uri:
-        if not uri.startswith('bitcoin:'):
+        if not uri.startswith(constants.net.PAYMENT_URI_PREFIX):
             print_stderr('unknown command:', uri)
             sys.exit(1)
 
     # singleton
     config = SimpleConfig(config_options)
-
-    if config.get('testnet'):
-        constants.set_testnet()
-    elif config.get('regtest'):
-        constants.set_regtest()
-    elif config.get('simnet'):
-        constants.set_simnet()
 
     cmdname = config.get('cmd')
 

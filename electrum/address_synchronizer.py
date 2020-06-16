@@ -28,8 +28,7 @@ import itertools
 from collections import defaultdict
 from typing import TYPE_CHECKING, Dict, Optional, Set, Tuple, NamedTuple, Sequence, List
 
-from . import bitcoin, util
-from .bitcoin import COINBASE_MATURITY
+from . import bitcoin, util, constants
 from .util import profiler, bfh, TxMinedInfo
 from .transaction import Transaction, TxOutput, TxInput, PartialTxInput, TxOutpoint, PartialTransaction
 from .synchronizer import Synchronizer
@@ -799,7 +798,7 @@ class AddressSynchronizer(Logger):
         for txo, (tx_height, v, is_cb) in received.items():
             if txo in excluded_coins:
                 continue
-            if is_cb and tx_height + COINBASE_MATURITY > mempool_height:
+            if is_cb and tx_height + constants.net.COINBASE_MATURITY > mempool_height:
                 x += v
             elif tx_height > 0:
                 c += v
@@ -837,7 +836,7 @@ class AddressSynchronizer(Logger):
                 if nonlocal_only and utxo.block_height == TX_HEIGHT_LOCAL:
                     continue
                 if (mature_only and utxo.is_coinbase_output()
-                        and utxo.block_height + COINBASE_MATURITY > mempool_height):
+                        and utxo.block_height + constants.net.COINBASE_MATURITY > mempool_height):
                     continue
                 coins.append(utxo)
                 continue

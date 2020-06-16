@@ -206,7 +206,7 @@ class SendScreen(CScreen):
             return
         self.address = invoice
         self.message = dict(lnaddr.tags).get('d', None)
-        self.amount = self.app.format_amount_and_units(lnaddr.amount * bitcoin.COIN) if lnaddr.amount else ''
+        self.amount = self.app.format_amount_and_units(lnaddr.amount * constants.net.COIN) if lnaddr.amount else ''
         self.payment_request = None
         self.is_lightning = True
 
@@ -289,7 +289,7 @@ class SendScreen(CScreen):
     def read_invoice(self):
         address = str(self.address)
         if not address:
-            self.app.show_error(_('Recipient not specified.') + ' ' + _('Please scan a Bitcoin address or a payment request'))
+            self.app.show_error(_('Recipient not specified.') + ' ' + _(f'Please scan a {constants.net.NAME} address or a payment request'))
             return
         if not self.amount:
             self.app.show_error(_('Please enter an amount'))
@@ -307,7 +307,7 @@ class SendScreen(CScreen):
                 outputs = self.payment_request.get_outputs()
             else:
                 if not bitcoin.is_address(address):
-                    self.app.show_error(_('Invalid Bitcoin Address') + ':\n' + address)
+                    self.app.show_error(_(f'Invalid {constants.net.NAME} Address') + ':\n' + address)
                     return
                 outputs = [PartialTxOutput.from_address_and_value(address, amount)]
             return self.app.wallet.create_invoice(

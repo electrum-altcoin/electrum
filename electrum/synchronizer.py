@@ -30,7 +30,7 @@ import logging
 
 from aiorpcx import TaskGroup, run_in_thread, RPCError
 
-from . import util
+from . import util, constants
 from .transaction import Transaction, PartialTransaction
 from .util import bh2u, make_aiohttp_session, NetworkJobOnDefaultServer
 from .bitcoin import address_to_scripthash, is_address
@@ -92,7 +92,7 @@ class SynchronizerBase(NetworkJobOnDefaultServer):
         asyncio.run_coroutine_threadsafe(self._add_address(addr), self.asyncio_loop)
 
     async def _add_address(self, addr: str):
-        if not is_address(addr): raise ValueError(f"invalid bitcoin address {addr}")
+        if not is_address(addr): raise ValueError(f"invalid {constants.net.NAME_LOWER} address {addr}")
         if addr in self.requested_addrs: return
         self.requested_addrs.add(addr)
         await self.add_queue.put(addr)
