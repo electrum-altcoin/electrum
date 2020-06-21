@@ -64,8 +64,6 @@ ca_path = certifi.where()
 
 BUCKET_NAME_OF_ONION_SERVERS = 'onion'
 
-MAX_INCOMING_MSG_SIZE = 1_000_000  # in bytes
-
 _KNOWN_NETWORK_PROTOCOLS = {'t', 's'}
 PREFERRED_NETWORK_PROTOCOL = 's'
 assert PREFERRED_NETWORK_PROTOCOL in _KNOWN_NETWORK_PROTOCOLS
@@ -167,7 +165,7 @@ class NotificationSession(RPCSession):
 
     def default_framer(self):
         # overridden so that max_size can be customized
-        return NewlineFramer(max_size=MAX_INCOMING_MSG_SIZE)
+        return NewlineFramer(max_size=constants.net.MAX_INCOMING_MSG_SIZE)
 
 
 class NetworkException(Exception): pass
@@ -520,8 +518,17 @@ class Interface(Logger):
         self.logger.info(f'requesting block header {height} in mode {assert_mode}')
         # use lower timeout as we usually have network.bhi_lock here
         timeout = self.network.get_network_timeout_seconds(NetworkTimeout.Urgent)
+        if issubclass(constants.net, constants.AuxPowMixin):
+            cp_height = constants.net.max_checkpoint()
+            if height > cp_height:
+                cp_height = 0
+            res = await self.session.send_request('blockchain.block.header', [height, cp_height], timeout=timeout)
+            if cp_height != 0:
+                res = res["header"]
+            return blockchain.deserialize_full_header(bytes.fromhex(res), height)
+
         res = await self.session.send_request('blockchain.block.header', [height], timeout=timeout)
-        return blockchain.deserialize_header(bytes.fromhex(res), height)
+        return blockchain.deserialize_full_header(bytes.fromhex(res), height)
 
     async def request_chunk(self, height: int, tip=None, *, can_return_early=False):
         index = height // 2016
@@ -532,9 +539,17 @@ class Interface(Logger):
         if tip is not None:
             size = min(size, tip - index * 2016 + 1)
             size = max(size, 0)
+        params = [index * 2016, size]
+
         try:
+            if issubclass(constants.net, constants.AuxPowMixin):
+                cp_height = constants.net.max_checkpoint()
+                if index * 2016 + size - 1 > cp_height:
+                    cp_height = 0
+                params.append(cp_height)
+    
             self._requested_chunks.add(index)
-            res = await self.session.send_request('blockchain.block.headers', [index * 2016, size])
+            res = await self.session.send_request('blockchain.block.headers', params)
         finally:
             self._requested_chunks.discard(index)
         conn = self.blockchain.connect_chunk(index, res['hex'])
@@ -614,7 +629,7 @@ class Interface(Logger):
             item = await header_queue.get()
             raw_header = item[0]
             height = raw_header['height']
-            header = blockchain.deserialize_header(bfh(raw_header['hex']), height)
+            header = blockchain.deserialize_full_header(bfh(raw_header['hex']), height)
             self.tip_header = header
             self.tip = height
             if self.tip < constants.net.max_checkpoint():
