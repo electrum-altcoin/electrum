@@ -121,7 +121,9 @@ class CoinChooserBase(Logger):
         constant_fee = fee_estimator_vb(2000) == fee_estimator_vb(200)
 
         def make_Bucket(desc: str, coins: List[PartialTxInput]):
-            witness = any(Transaction.is_segwit_input(coin, guess_for_address=True) for coin in coins)
+            witness = False
+            if hasattr(constants.net, 'SEGWIT_HRP'):
+                witness = any(Transaction.is_segwit_input(coin, guess_for_address=True) for coin in coins)
             # note that we're guessing whether the tx uses segwit based
             # on this single bucket
             weight = sum(Transaction.estimated_input_weight(coin, witness)
@@ -254,6 +256,9 @@ class CoinChooserBase(Logger):
         at this point are not yet known so they are NOT accounted for.
         """
         total_weight = base_weight + sum(bucket.weight for bucket in buckets)
+        if not hasattr(constants.net, 'SEGWIT_HRP'):
+            return total_weight
+            
         is_segwit_tx = any(bucket.witness for bucket in buckets)
         if is_segwit_tx:
             total_weight += 2  # marker and flag

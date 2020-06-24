@@ -22,6 +22,7 @@
 # SOFTWARE.
 import os
 import threading
+import traceback
 import time
 from typing import Optional, Dict, Mapping, Sequence
 
@@ -78,8 +79,8 @@ def deserialize_full_header(s: bytes, height: int, expect_trailing_data=False, s
     pure_header_bytes = s[start_position : start_position + constants.net.HEADER_SIZE]
     h = deserialize_pure_header(pure_header_bytes, height)
     start_position += constants.net.HEADER_SIZE
-
-    if constants.net.is_auxpow_active(h) and height > constants.net.max_checkpoint():
+        
+    if issubclass(constants.net, constants.AuxPowMixin) and constants.net.is_auxpow_active(h) and height > constants.net.max_checkpoint():
         h['auxpow'], start_position = auxpow.deserialize_auxpow_header(h, s, start_position=start_position)
 
     if expect_trailing_data:
@@ -328,7 +329,6 @@ class Blockchain(Logger):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
 
         if issubclass(constants.net, constants.AuxPowMixin):
-            _logger.info("[Blockchain] Using AuxPow Implementation")
             # Don't verify AuxPoW when covered by a checkpoint
             if header.get('block_height') <= constants.net.max_checkpoint():
                 skip_auxpow = True
@@ -653,6 +653,7 @@ class Blockchain(Logger):
             self.save_chunk(idx, data)
             return True
         except BaseException as e:
+            traceback.print_exc()
             self.logger.info(f'verify_chunk idx {idx} failed: {repr(e)}')
             return False
 

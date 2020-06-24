@@ -48,7 +48,10 @@ class NamecoinMainnet(AbstractNet, AuxPowMixin):
     COIN = 100000000
     TOTAL_COIN_SUPPLY_LIMIT = 21000000
     SIGNED_MESSAGE_PREFIX = b"\x18Namecoin Signed Message:\n"
-
+    TARGET_TIMESPAN = 1209600 # 14 * 24 * 60 * 60
+    TARGET_SPACING = 600
+    INTERVAL = 2016
+    
     BASE_UNITS = {'NMC': 8, 'mNMC': 5, 'uNMC': 2, 'swartz': 0}
     BASE_UNITS_INVERSE = inv_dict(BASE_UNITS)
     BASE_UNITS_LIST = ['NMC', 'mNMC', 'uNMC', 'swartz']

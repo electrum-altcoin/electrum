@@ -35,6 +35,8 @@ networks = {
     'Bitcoin-Testnet': BitcoinTestnet,
     'Bitcoin-Regtest': BitcoinRegtest,
     'Bitcoin-Simnet': BitcoinSimnet,
+    'Crowncoin': CrowncoinMainnet,
+    'Crowncoin-Mainnet': CrowncoinMainnet,
     'Namecoin': NamecoinMainnet
 }
 

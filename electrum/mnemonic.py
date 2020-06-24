@@ -32,7 +32,7 @@ from types import MappingProxyType
 
 from .util import resource_path, bfh, bh2u, randrange
 from .crypto import hmac_oneshot
-from . import version
+from . import constants, version
 from .logging import Logger
 
 
@@ -188,8 +188,10 @@ class Mnemonic(Logger):
         return i
 
     def make_seed(self, seed_type=None, *, num_bits=132) -> str:
-        if seed_type is None:
+        if seed_type is None and hasattr(constants.net, 'SEGWIT_HRP'):
             seed_type = 'segwit'
+        elif seed_type is None:
+            seed_type = 'standard'
         prefix = version.seed_prefix(seed_type)
         # increase num_bits in order to obtain a uniform distribution for the last word
         bpw = math.log(len(self.wordlist), 2)
@@ -244,11 +246,11 @@ def seed_type(x: str) -> str:
         return 'old'
     elif is_new_seed(x):
         return 'standard'
-    elif is_new_seed(x, version.SEED_PREFIX_SW):
+    elif is_new_seed(x, version.SEED_PREFIX_SW) and hasattr(constants.net, 'SEGWIT_HRP'):
         return 'segwit'
     elif is_new_seed(x, version.SEED_PREFIX_2FA):
         return '2fa'
-    elif is_new_seed(x, version.SEED_PREFIX_2FA_SW):
+    elif is_new_seed(x, version.SEED_PREFIX_2FA_SW) and hasattr(constants.net, 'SEGWIT_HRP'):
         return '2fa_segwit'
     return ''
 
@@ -258,4 +260,7 @@ def is_seed(x: str) -> bool:
 
 
 def is_any_2fa_seed_type(seed_type: str) -> bool:
-    return seed_type in ['2fa', '2fa_segwit']
+    types = ['2fa']
+    if hasattr(constants.net, 'SEGWIT_HRP'):
+        types.append('2fa_segwit')
+    return seed_type in types

@@ -18,6 +18,9 @@ class BitcoinMainnet(AbstractNet):
     CHECKPOINTS = read_json('checkpoints/Bitcoin-Mainnet.json', [])
     BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 497000
     DATA_DIR = 'bitcoin'
+    TARGET_TIMESPAN = 1209600 # 14 * 24 * 60 * 60
+    TARGET_SPACING = 600
+    INTERVAL = 2016
 
     XPRV_HEADERS = {
         'standard':    0x0488ade4,  # xprv
