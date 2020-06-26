@@ -453,6 +453,9 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Optional[str]:
     if match_script_against_template(decoded, SCRIPTPUBKEY_TEMPLATE_P2SH):
         return hash160_to_p2sh(decoded[1][1], net=net)
 
+    if not hasattr(constants.net, 'SEGWIT_HRP'):
+        return None
+
     # segwit address (version 0)
     if match_script_against_template(decoded, SCRIPTPUBKEY_TEMPLATE_WITNESS_V0):
         return hash_to_segwit_addr(decoded[1][1], witver=0, net=net)
@@ -519,26 +522,37 @@ def multisig_script(public_keys: Sequence[str], m: int) -> str:
 
 class Transaction:
     _cached_network_ser: Optional[str]
+    _cached_network_ser_bytes: Optional[bytes]
 
     def __str__(self):
         return self.serialize()
 
-    def __init__(self, raw):
+    def __init__(self, raw, expect_trailing_data=False, copy_input=True, start_position=0):
         if raw is None:
             self._cached_network_ser = None
+            self._cached_network_ser_bytes = None
         elif isinstance(raw, str):
             self._cached_network_ser = raw.strip() if raw else None
             assert is_hex_str(self._cached_network_ser)
+            self._cached_network_ser_bytes = None
         elif isinstance(raw, (bytes, bytearray)):
-            self._cached_network_ser = bh2u(raw)
+            self._cached_network_ser = None
+            self._cached_network_ser_bytes = raw
         else:
             raise Exception(f"cannot initialize transaction from {raw}")
         self._inputs = None  # type: List[TxInput]
         self._outputs = None  # type: List[TxOutput]
         self._locktime = 0
         self._version = 2
+        self.expect_trailing_data = expect_trailing_data
+        self.copy_input = copy_input
+        self.start_position = start_position
 
         self._cached_txid = None  # type: Optional[str]
+
+        # When parsing the parent coinbase tx of an auxpow, we have to allow
+        # there not being any outputs (which is normally not valid).
+        self._allow_zero_outputs = False
 
     @property
     def locktime(self):
@@ -577,15 +591,26 @@ class Transaction:
             self.deserialize()
         return self._outputs
 
-    def deserialize(self) -> None:
-        if self._cached_network_ser is None:
-            return
+    # If expect_trailing_data == True, returns start position (in bytes) of
+    # trailing data.
+    def deserialize(self) -> Optional[int]:
         if self._inputs is not None:
             return
 
-        raw_bytes = bfh(self._cached_network_ser)
+        if self._cached_network_ser_bytes is not None:
+            raw_bytes = self._cached_network_ser_bytes
+        elif self._cached_network_ser is not None:
+            self._cached_network_ser_bytes = bfh(self._cached_network_ser)
+            raw_bytes = self._cached_network_ser_bytes
+        else:
+            return
+            
         vds = BCDataStream()
-        vds.write(raw_bytes)
+        if self.copy_input:
+            vds.write(raw_bytes)
+        else:
+            vds.input = raw_bytes
+        vds.read_cursor = self.start_position
         self._version = vds.read_int32()
         n_vin = vds.read_compact_size()
         is_segwit = (n_vin == 0)
@@ -598,16 +623,24 @@ class Transaction:
             raise SerializationError('tx needs to have at least 1 input')
         self._inputs = [parse_input(vds) for i in range(n_vin)]
         n_vout = vds.read_compact_size()
-        if n_vout < 1:
+        if n_vout < 1 and not self._allow_zero_outputs:
             raise SerializationError('tx needs to have at least 1 output')
         self._outputs = [parse_output(vds) for i in range(n_vout)]
         if is_segwit:
             for txin in self._inputs:
                 parse_witness(vds, txin)
         self._locktime = vds.read_uint32()
-        if vds.can_read_more():
+        if vds.can_read_more() and not self.expect_trailing_data:
             raise SerializationError('extra junk at the end')
-
+        if self.expect_trailing_data:
+            if self._cached_network_ser is not None:
+                self._cached_network_ser = self._cached_network_ser[(2*self.start_position):(2*vds.read_cursor)]
+            if self._cached_network_ser_bytes is not None:
+                self._cached_network_ser_bytes = self._cached_network_ser_bytes[self.start_position:vds.read_cursor]
+            self.expect_trailing_data = False
+            self.start_position = 0
+            return vds.read_cursor
+            
     @classmethod
     def get_siglist(self, txin: 'PartialTxInput', *, estimate_size=False):
         if txin.is_coinbase_input():
@@ -661,6 +694,9 @@ class Transaction:
 
     @classmethod
     def is_segwit_input(cls, txin: 'TxInput', *, guess_for_address=False) -> bool:
+        if not hasattr(constants.net, 'SEGWIT_HRP'):
+            return False
+            
         if txin.witness not in (b'\x00', b'', None):
             return True
         if not isinstance(txin, PartialTxInput):
@@ -689,9 +725,10 @@ class Transaction:
         # the estimation will not be precise.
         if addr is None:
             return 'p2wpkh'
-        witver, witprog = segwit_addr.decode(constants.net.SEGWIT_HRP, addr)
-        if witprog is not None:
-            return 'p2wpkh'
+        if hasattr(constants.net, 'SEGWIT_HRP'):
+            witver, witprog = segwit_addr.decode(constants.net.SEGWIT_HRP, addr)
+            if witprog is not None:
+                return 'p2wpkh'
         addrtype, hash_160_ = b58_address_to_hash160(addr)
         if addrtype == constants.net.ADDRTYPE_P2PKH:
             return 'p2pkh'
@@ -789,15 +826,23 @@ class Transaction:
 
     def invalidate_ser_cache(self):
         self._cached_network_ser = None
+        self._cached_network_ser_bytes = None
         self._cached_txid = None
 
     def serialize(self) -> str:
-        if not self._cached_network_ser:
-            self._cached_network_ser = self.serialize_to_network(estimate_size=False, include_sigs=True)
+        if self._cached_network_ser is not None:
+            return self._cached_network_ser
+        if self._cached_network_ser_bytes is not None:
+            self._cached_network_ser = bh2u(self._cached_network_ser_bytes)
+            return self._cached_network_ser
+        self._cached_network_ser = self.serialize_to_network(estimate_size=False, include_sigs=True)
         return self._cached_network_ser
 
     def serialize_as_bytes(self) -> bytes:
-        return bfh(self.serialize())
+        if self._cached_network_ser_bytes is not None:
+            return self._cached_network_ser_bytes
+        self._cached_network_ser_bytes = bfh(self.serialize())
+        return self._cached_network_ser_bytes
 
     def serialize_to_network(self, *, estimate_size=False, include_sigs=True, force_legacy=False) -> str:
         """Serialize the transaction as used on the Bitcoin network, into hex.
@@ -827,8 +872,7 @@ class Transaction:
             flag = '01'
             witness = ''.join(self.serialize_witness(x, estimate_size=estimate_size) for x in inputs)
             return nVersion + marker + flag + txins + txouts + witness + nLocktime
-        else:
-            return nVersion + txins + txouts + nLocktime
+        return nVersion + txins + txouts + nLocktime
 
     def txid(self) -> Optional[str]:
         if self._cached_txid is None:
@@ -1382,6 +1426,9 @@ class PartialTxInput(TxInput, PSBTSection):
     def ensure_there_is_only_one_utxo(self):
         # we prefer having the full previous tx, even for segwit inputs. see #6198
         # for witness v1, witness_utxo will be enough though
+        if not hasattr(constants.net, 'SEGWIT_HRP'):
+            self.witness_utxo = None
+            
         if self.utxo is not None and self.witness_utxo is not None:
             self.witness_utxo = None
 

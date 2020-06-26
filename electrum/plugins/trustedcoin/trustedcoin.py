@@ -273,7 +273,7 @@ class Wallet_2fa(Multisig_Wallet):
         billing_addresses = {
             'legacy': self.db.get('trustedcoin_billing_addresses', {}),
             'segwit': self.db.get('trustedcoin_billing_addresses_segwit', {})
-        }
+        })
         self._billing_addresses = {}  # type: Dict[str, Dict[int, str]]  # addr_type -> index -> addr
         self._billing_addresses_set = set()  # set of addrs
         for addr_type, d in list(billing_addresses.items()):
@@ -546,9 +546,12 @@ class TrustedCoinPlugin(BasePlugin):
 
     def choose_seed_type(self, wizard):
         choices = [
-            ('create_2fa_segwit_seed', _('Segwit 2FA')),
             ('create_2fa_seed', _('Legacy 2FA')),
         ]
+        if hasattr(constants.net, 'SEGWIT_HRP'):
+            choices += [
+                ('create_2fa_segwit_seed', _('Segwit 2FA')),
+            ]
         wizard.choose_seed_type(choices=choices)
 
     def create_2fa_seed(self, wizard): self.create_seed(wizard, '2fa')

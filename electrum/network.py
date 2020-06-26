@@ -51,7 +51,7 @@ from . import blockchain
 from . import bitcoin
 from . import dns_hacks
 from .transaction import Transaction
-from .blockchain import Blockchain, HEADER_SIZE
+from .blockchain import Blockchain
 from .interface import (Interface, PREFERRED_NETWORK_PROTOCOL,
                         RequestTimedOut, NetworkTimeout, BUCKET_NAME_OF_ONION_SERVERS,
                         NetworkException, RequestCorrupted, ServerAddr)

@@ -73,7 +73,15 @@ ca_path = certifi.where()
 
 class UnknownBaseUnit(Exception): pass
 
-
+def read_json(filename, default):
+    path = os.path.join(os.path.dirname(__file__), filename)
+    try:
+        with open(path, 'r') as f:
+            r = json.loads(f.read())
+    except:
+        r = default
+    return r
+    
 def decimal_point_to_base_unit_name(dp: int) -> str:
     # e.g. 8 -> "BTC"
     from . import constants
