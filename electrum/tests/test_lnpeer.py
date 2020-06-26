@@ -17,7 +17,7 @@ from electrum.network import Network
 from electrum.ecc import ECPrivkey
 from electrum import simple_config, lnutil
 from electrum.lnaddr import lnencode, LnAddr, lndecode
-from electrum.bitcoin import COIN, sha256
+from electrum.bitcoin import sha256
 from electrum.util import bh2u, create_and_start_event_loop, NetworkRetryManager
 from electrum.lnpeer import Peer
 from electrum.lnutil import LNPeerAddr, Keypair, privkey_to_pubkey
@@ -369,7 +369,7 @@ class TestPeer(ElectrumTestCase):
             amount_sat=100_000,
             include_routing_hints=False,
     ):
-        amount_btc = amount_sat/Decimal(COIN)
+        amount_btc = amount_sat/Decimal(constants.net.COIN)
         payment_preimage = os.urandom(32)
         RHASH = sha256(payment_preimage)
         info = PaymentInfo(RHASH, amount_sat, RECEIVED, PR_UNPAID)
@@ -586,7 +586,7 @@ class TestPeer(ElectrumTestCase):
             route = w1._create_route_from_invoice(decoded_invoice=lnaddr)
             htlc = p1.pay(route=route,
                           chan=alice_channel,
-                          amount_msat=int(lnaddr.amount * COIN * 1000),
+                          amount_msat=int(lnaddr.amount * constants.net.COIN * 1000),
                           payment_hash=lnaddr.paymenthash,
                           min_final_cltv_expiry=lnaddr.get_min_final_cltv_expiry(),
                           payment_secret=lnaddr.payment_secret)

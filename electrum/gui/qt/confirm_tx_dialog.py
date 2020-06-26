@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING, Optional, Union
 
 from PyQt5.QtWidgets import  QVBoxLayout, QLabel, QGridLayout, QPushButton, QLineEdit
 
+from electrum import constants
 from electrum.i18n import _
 from electrum.util import NotEnoughFunds, NoDynamicFeeEstimates
 from electrum.plugin import run_hook
@@ -131,7 +132,7 @@ class ConfirmTxDialog(TxEditor, WindowModalDialog):
         grid.addWidget(QLabel(_("Amount to be sent") + ": "), 0, 0)
         grid.addWidget(self.amount_label, 0, 1)
 
-        msg = _('Bitcoin transactions are in general not free. A transaction fee is paid by the sender of the funds.') + '\n\n'\
+        msg = _('{name} transactions are in general not free. A transaction fee is paid by the sender of the funds.').format(name=constants.net.NAME) + '\n\n'\
               + _('The amount of fee can be decided freely by the sender. However, transactions with low fees take more time to be processed.') + '\n\n'\
               + _('A suggested fee is automatically added to this field. You may override it. The suggested fee increases with the size of the transaction.')
         self.fee_label = QLabel('')

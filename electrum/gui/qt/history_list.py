@@ -39,6 +39,7 @@ from PyQt5.QtWidgets import (QMenu, QHeaderView, QLabel, QMessageBox,
                              QPushButton, QComboBox, QVBoxLayout, QCalendarWidget,
                              QGridLayout)
 
+from electrum import constants
 from electrum.address_synchronizer import TX_HEIGHT_LOCAL, TX_HEIGHT_FUTURE
 from electrum.i18n import _
 from electrum.util import (block_explorer_URL, profiler, TxMinedInfo,
@@ -524,13 +525,13 @@ class HistoryList(MyTreeView, AcceptFileDragDrop):
         grid = QGridLayout()
         grid.addWidget(QLabel(_("Start")), 0, 0)
         grid.addWidget(QLabel(self.format_date(start_date)), 0, 1)
-        grid.addWidget(QLabel(str(h.get('fiat_start_value')) + '/BTC'), 0, 2)
+        grid.addWidget(QLabel(str(h.get('fiat_start_value')) + '/{code}'.format(code=constants.net.SHORT_CODE)), 0, 2)
         grid.addWidget(QLabel(_("Initial balance")), 1, 0)
         grid.addWidget(QLabel(format_amount(h['start_balance'])), 1, 1)
         grid.addWidget(QLabel(str(h.get('fiat_start_balance'))), 1, 2)
         grid.addWidget(QLabel(_("End")), 2, 0)
         grid.addWidget(QLabel(self.format_date(end_date)), 2, 1)
-        grid.addWidget(QLabel(str(h.get('fiat_end_value')) + '/BTC'), 2, 2)
+        grid.addWidget(QLabel(str(h.get('fiat_end_value')) + '/{code}'.format(code=constants.net.SHORT_CODE)), 2, 2)
         grid.addWidget(QLabel(_("Final balance")), 4, 0)
         grid.addWidget(QLabel(format_amount(h['end_balance'])), 4, 1)
         grid.addWidget(QLabel(str(h.get('fiat_end_balance'))), 4, 2)

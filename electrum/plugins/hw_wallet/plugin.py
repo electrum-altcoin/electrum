@@ -27,6 +27,7 @@
 from typing import TYPE_CHECKING, Dict, List, Union, Tuple, Sequence, Optional, Type
 from functools import partial
 
+from electrum import constants
 from electrum.plugin import BasePlugin, hook, Device, DeviceMgr, DeviceInfo
 from electrum.i18n import _
 from electrum.bitcoin import is_address, opcodes
@@ -122,7 +123,7 @@ class HW_PluginBase(BasePlugin):
         if keystore is None:
             keystore = wallet.get_keystore()
         if not is_address(address):
-            keystore.handler.show_error(_('Invalid Bitcoin Address'))
+            keystore.handler.show_error(_('Invalid {name} Address').format(name=constants.net.NAME))
             return False
         if not wallet.is_mine(address):
             keystore.handler.show_error(_('Address not in wallet.'))

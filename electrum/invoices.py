@@ -7,7 +7,6 @@ from .i18n import _
 from .util import age
 from .lnaddr import lndecode
 from . import constants
-from .bitcoin import COIN
 from .transaction import PartialTxOutput
 
 if TYPE_CHECKING:
@@ -127,7 +126,7 @@ class LNInvoice(Invoice):
     @classmethod
     def from_bech32(klass, invoice: str) -> 'LNInvoice':
         lnaddr = lndecode(invoice, expected_hrp=constants.net.SEGWIT_HRP)
-        amount = int(lnaddr.amount * COIN) if lnaddr.amount else None
+        amount = int(lnaddr.amount * constants.net.COIN) if lnaddr.amount else None
         return LNInvoice(
             type = PR_TYPE_LN,
             amount = amount,

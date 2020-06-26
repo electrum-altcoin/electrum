@@ -31,6 +31,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QAbstractItemView
 from PyQt5.QtWidgets import QMenu, QVBoxLayout, QTreeWidget, QTreeWidgetItem, QHeaderView
 
+from electrum import constants
 from electrum.i18n import _
 from electrum.util import format_time
 from electrum.invoices import Invoice, PR_UNPAID, PR_PAID, PR_INFLIGHT, PR_FAILED, PR_TYPE_ONCHAIN, PR_TYPE_LN
@@ -159,7 +160,7 @@ class InvoiceList(MyTreeView):
             menu.addAction(_("Details"), lambda: self.parent.show_lightning_invoice(invoice))
         else:
             if len(invoice.outputs) == 1:
-                menu.addAction(_("Copy Address"), lambda: self.parent.do_copy(invoice.get_address(), title='Bitcoin Address'))
+                menu.addAction(_("Copy Address"), lambda: self.parent.do_copy(invoice.get_address(), title='{name} Address'.format(name=constants.net.NAME)))
             menu.addAction(_("Details"), lambda: self.parent.show_onchain_invoice(invoice))
         status = wallet.get_invoice_status(invoice)
         if status == PR_UNPAID:

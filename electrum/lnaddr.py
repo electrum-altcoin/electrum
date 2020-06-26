@@ -13,7 +13,6 @@ from .bitcoin import hash160_to_b58_address, b58_address_to_hash160
 from .segwit_addr import bech32_encode, bech32_decode, CHARSET
 from . import constants
 from . import ecc
-from .bitcoin import COIN
 
 
 # BOLT #11:

@@ -64,8 +64,6 @@ ca_path = certifi.where()
 
 BUCKET_NAME_OF_ONION_SERVERS = 'onion'
 
-MAX_INCOMING_MSG_SIZE = 1_000_000  # in bytes
-
 _KNOWN_NETWORK_PROTOCOLS = {'t', 's'}
 PREFERRED_NETWORK_PROTOCOL = 's'
 assert PREFERRED_NETWORK_PROTOCOL in _KNOWN_NETWORK_PROTOCOLS
@@ -167,7 +165,7 @@ class NotificationSession(RPCSession):
 
     def default_framer(self):
         # overridden so that max_size can be customized
-        return NewlineFramer(max_size=MAX_INCOMING_MSG_SIZE)
+        return NewlineFramer(max_size=constants.net.MAX_INCOMING_MSG_SIZE)
 
 
 class NetworkException(Exception): pass
@@ -589,14 +587,13 @@ class Interface(Logger):
 
     async def request_fee_estimates(self):
         from .simple_config import FEE_ETA_TARGETS
-        from .bitcoin import COIN
         while True:
             async with TaskGroup() as group:
                 fee_tasks = []
                 for i in FEE_ETA_TARGETS:
                     fee_tasks.append((i, await group.spawn(self.session.send_request('blockchain.estimatefee', [i]))))
             for nblock_target, task in fee_tasks:
-                fee = int(task.result() * COIN)
+                fee = int(task.result() * constants.net.COIN)
                 if fee < 0: continue
                 self.fee_estimates_eta[nblock_target] = fee
             self.network.update_fee_estimates()

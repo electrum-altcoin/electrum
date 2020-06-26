@@ -42,6 +42,7 @@ from PyQt5.QtWidgets import (QApplication, QSystemTrayIcon, QWidget, QMenu,
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 import PyQt5.QtCore as QtCore
 
+from electrum import constants
 from electrum.i18n import _, set_language
 from electrum.plugin import run_hook
 from electrum.base_wizard import GoBack
@@ -125,7 +126,7 @@ class ElectrumGui(Logger):
         # init tray
         self.dark_icon = self.config.get("dark_icon", False)
         self.tray = QSystemTrayIcon(self.tray_icon(), None)
-        self.tray.setToolTip('Electrum')
+        self.tray.setToolTip('Electrum ({name})'.format(name=constants.net.NAME))
         self.tray.activated.connect(self.tray_activated)
         self.build_tray_menu()
         self.tray.show()

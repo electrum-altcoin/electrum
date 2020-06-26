@@ -12,8 +12,7 @@ from typing import Sequence, Optional
 
 from aiorpcx.curio import timeout_after, TaskTimeout, TaskGroup
 
-from . import util
-from .bitcoin import COIN
+from . import constants, util
 from .i18n import _
 from .util import (ThreadJob, make_dir, log_exceptions,
                    make_aiohttp_session, resource_path)
@@ -590,10 +589,10 @@ class FxThread(ThreadJob):
     def get_fiat_status_text(self, btc_balance, base_unit, decimal_point):
         rate = self.exchange_rate()
         return _("  (No FX rate available)") if rate.is_nan() else " 1 %s~%s %s" % (base_unit,
-            self.value_str(COIN / (10**(8 - decimal_point)), rate), self.ccy)
+            self.value_str(constants.net.COIN / (10**(8 - decimal_point)), rate), self.ccy)
 
     def fiat_value(self, satoshis, rate):
-        return Decimal('NaN') if satoshis is None else Decimal(satoshis) / COIN * Decimal(rate)
+        return Decimal('NaN') if satoshis is None else Decimal(satoshis) / constants.net.COIN * Decimal(rate)
 
     def value_str(self, satoshis, rate):
         return self.format_fiat(self.fiat_value(satoshis, rate))

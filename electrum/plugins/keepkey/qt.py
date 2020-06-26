@@ -13,6 +13,7 @@ from electrum.gui.qt.util import (WindowModalDialog, WWLabel, Buttons, CancelBut
 from electrum.i18n import _
 from electrum.plugin import hook
 from electrum.util import bh2u
+from electrum import constants
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from ..hw_wallet.plugin import only_hook_if_libraries_available
@@ -29,11 +30,11 @@ PASSPHRASE_HELP = PASSPHRASE_HELP_SHORT + "  " + _(
     "accessible behind its own passphrase.")
 RECOMMEND_PIN = _(
     "You should enable PIN protection.  Your PIN is the only protection "
-    "for your bitcoins if your device is lost or stolen.")
+    "for your {name_lower}s if your device is lost or stolen.").format(name_lower=constants.net.NAME_LOWER)
 PASSPHRASE_NOT_PIN = _(
     "If you forget a passphrase you will be unable to access any "
-    "bitcoins in the wallet behind it.  A passphrase is not a PIN. "
-    "Only change this if you are sure you understand it.")
+    "{name_lower}s in the wallet behind it.  A passphrase is not a PIN. "
+    "Only change this if you are sure you understand it.").format(name_lower=constants.net.NAME_LOWER)
 CHARACTER_RECOVERY = (
     "Use the recovery cipher shown on your device to input your seed words.  "
     "The cipher changes with every keypress.\n"
@@ -410,7 +411,7 @@ class SettingsDialog(WindowModalDialog):
             if wallet and sum(wallet.get_balance()):
                 title = _("Confirm Device Wipe")
                 msg = _("Are you SURE you want to wipe the device?\n"
-                        "Your wallet still has bitcoins in it!")
+                        "Your wallet still has {name_lower}s in it!").format(name_lower=constants.net.NAME_LOWER)
                 if not self.question(msg, title=title,
                                      icon=QMessageBox.Critical):
                     return
@@ -527,7 +528,7 @@ class SettingsDialog(WindowModalDialog):
         clear_pin_button.clicked.connect(clear_pin)
         clear_pin_warning = QLabel(
             _("If you disable your PIN, anyone with physical access to your "
-              "{} device can spend your bitcoins.").format(plugin.device))
+              "{device} device can spend your {name_lower}s.").format(device=plugin.device, name_lower=constants.net.NAME_LOWER))
         clear_pin_warning.setWordWrap(True)
         clear_pin_warning.setStyleSheet("color: red")
         advanced_glayout.addWidget(clear_pin_button, 0, 2)
@@ -552,8 +553,8 @@ class SettingsDialog(WindowModalDialog):
         wipe_device_msg.setWordWrap(True)
         wipe_device_warning = QLabel(
             _("Only wipe a device if you have the recovery seed written down "
-              "and the device wallet(s) are empty, otherwise the bitcoins "
-              "will be lost forever."))
+              "and the device wallet(s) are empty, otherwise the {name_lower} "
+              "will be lost forever.").format(name_lower=constants.net.NAME_LOWER))
         wipe_device_warning.setWordWrap(True)
         wipe_device_warning.setStyleSheet("color: red")
         advanced_glayout.addWidget(wipe_device_button, 6, 2)

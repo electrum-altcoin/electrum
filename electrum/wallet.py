@@ -56,7 +56,7 @@ from .util import (NotEnoughFunds, UserCancelled, profiler,
                    Fiat, bfh, bh2u, TxMinedInfo, quantize_feerate, create_bip21_uri, OrderedDictWithIndex)
 from .util import get_backup_dir
 from .simple_config import SimpleConfig
-from .bitcoin import COIN, TYPE_ADDRESS
+from .bitcoin import TYPE_ADDRESS
 from .bitcoin import is_address, address_to_script, is_minikey, relayfee, dust_threshold
 from .crypto import sha256d
 from . import keystore
@@ -64,7 +64,7 @@ from .keystore import load_keystore, Hardware_KeyStore, KeyStore, KeyStoreWithMP
 from .util import multisig_type
 from .storage import StorageEncryptionVersion, WalletStorage
 from .wallet_db import WalletDB
-from . import transaction, bitcoin, coinchooser, paymentrequest, ecc, bip32
+from . import transaction, bitcoin, coinchooser, paymentrequest, ecc, bip32, constants
 from .transaction import (Transaction, TxInput, UnknownTxinType, TxOutput,
                           PartialTransaction, PartialTxInput, PartialTxOutput, TxOutpoint)
 from .plugin import run_hook
@@ -393,7 +393,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
             addr = str(addrs[0])
             if not bitcoin.is_address(addr):
                 neutered_addr = addr[:5] + '..' + addr[-2:]
-                raise WalletFileException(f'The addresses in this wallet are not bitcoin addresses.\n'
+                raise WalletFileException(f'The addresses in this wallet are not {constants.net.NAME_LOWER} addresses.\n'
                                           f'e.g. {neutered_addr} (length: {len(addr)})')
 
     def check_returned_address_for_corruption(func):
@@ -524,7 +524,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
         if self.is_watching_only():
             raise Exception(_("This is a watching-only wallet"))
         if not is_address(address):
-            raise Exception(f"Invalid bitcoin address: {address}")
+            raise Exception(f"Invalid {constants.net.NAME_LOWER} address: {address}")
         if not self.is_mine(address):
             raise Exception(_('Address not in wallet.') + f' {address}')
         index = self.get_address_index(address)
@@ -863,7 +863,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
             item['balance'] = Satoshis(balance)
             if fx:
                 timestamp = item['timestamp'] or now
-                fiat_value = value / Decimal(bitcoin.COIN) * fx.timestamp_rate(timestamp)
+                fiat_value = value / Decimal(constants.net.COIN) * fx.timestamp_rate(timestamp)
                 item['fiat_value'] = Fiat(fiat_value, fx.ccy)
                 item['fiat_default'] = True
         return transactions
@@ -939,8 +939,8 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
                 summary['fiat_unrealized_gains'] = Fiat(unrealized, fx.ccy)
                 summary['fiat_start_balance'] = Fiat(fx.historical_value(start_balance, start_date), fx.ccy)
                 summary['fiat_end_balance'] = Fiat(fx.historical_value(end_balance, end_date), fx.ccy)
-                summary['fiat_start_value'] = Fiat(fx.historical_value(COIN, start_date), fx.ccy)
-                summary['fiat_end_value'] = Fiat(fx.historical_value(COIN, end_date), fx.ccy)
+                summary['fiat_start_value'] = Fiat(fx.historical_value(constants.net.COIN, start_date), fx.ccy)
+                summary['fiat_end_value'] = Fiat(fx.historical_value(constants.net.COIN, end_date), fx.ccy)
         else:
             summary = {}
         return {
@@ -949,7 +949,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
         }
 
     def default_fiat_value(self, tx_hash, fx, value_sat):
-        return value_sat / Decimal(COIN) * self.price_at_timestamp(tx_hash, fx.timestamp_rate)
+        return value_sat / Decimal(constants.net.COIN) * self.price_at_timestamp(tx_hash, fx.timestamp_rate)
 
     def get_tx_item_fiat(self, tx_hash, value, fx, tx_fee):
         item = {}
@@ -957,14 +957,14 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
         fiat_default = fiat_value is None
         fiat_rate = self.price_at_timestamp(tx_hash, fx.timestamp_rate)
         fiat_value = fiat_value if fiat_value is not None else self.default_fiat_value(tx_hash, fx, value)
-        fiat_fee = tx_fee / Decimal(COIN) * fiat_rate if tx_fee is not None else None
+        fiat_fee = tx_fee / Decimal(constants.net.COIN) * fiat_rate if tx_fee is not None else None
         item['fiat_currency'] = fx.ccy
         item['fiat_rate'] = Fiat(fiat_rate, fx.ccy)
         item['fiat_value'] = Fiat(fiat_value, fx.ccy)
         item['fiat_fee'] = Fiat(fiat_fee, fx.ccy) if fiat_fee else None
         item['fiat_default'] = fiat_default
         if value < 0:
-            acquisition_price = - value / Decimal(COIN) * self.average_price(tx_hash, fx.timestamp_rate, fx.ccy)
+            acquisition_price = - value / Decimal(constants.net.COIN) * self.average_price(tx_hash, fx.timestamp_rate, fx.ccy)
             liquidation_price = - fiat_value
             item['acquisition_price'] = Fiat(acquisition_price, fx.ccy)
             cg = liquidation_price - acquisition_price
@@ -1086,7 +1086,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
                 addrs = self.get_change_addresses(slice_start=-self.gap_limit_for_change)
                 change_addrs = [random.choice(addrs)] if addrs else []
         for addr in change_addrs:
-            assert is_address(addr), f"not valid bitcoin address: {addr}"
+            assert is_address(addr), f"not valid {constants.net.NAME_LOWER} address: {addr}"
             # note that change addresses are not necessarily ismine
             # in which case this is a no-op
             self.check_address_for_corruption(addr)
@@ -1106,7 +1106,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
                 selected_addr = random.choice(addrs)
             else:  # fallback for e.g. imported wallets
                 selected_addr = self.get_receiving_address()
-        assert is_address(selected_addr), f"not valid bitcoin address: {selected_addr}"
+        assert is_address(selected_addr), f"not valid {constants.net.NAME_LOWER} address: {selected_addr}"
         return selected_addr
 
     def make_unsigned_transaction(self, *, coins: Sequence[PartialTxInput],
@@ -1785,7 +1785,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
             assert isinstance(req, OnchainInvoice)
             addr = req.get_address()
             if not bitcoin.is_address(addr):
-                raise Exception(_('Invalid Bitcoin address.'))
+                raise Exception(_('Invalid {name} address.').format(name=constants.net.NAME))
             if not self.is_mine(addr):
                 raise Exception(_('Address not in wallet.'))
             key = addr
@@ -1941,7 +1941,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
         now = time.time()
         p = price_func(now)
         ap = sum(self.coin_price(coin.prevout.txid.hex(), price_func, ccy, self.txin_value(coin)) for coin in coins)
-        lp = sum([coin.value_sats() for coin in coins]) * p / Decimal(COIN)
+        lp = sum([coin.value_sats() for coin in coins]) * p / Decimal(constants.net.COIN)
         return lp - ap
 
     def average_price(self, txid, price_func, ccy):
@@ -1953,7 +1953,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
             for ser, v in d:
                 input_value += v
                 total_price += self.coin_price(ser.split(':')[0], price_func, ccy, v)
-        return total_price / (input_value/Decimal(COIN))
+        return total_price / (input_value/Decimal(constants.net.COIN))
 
     def clear_coin_price_cache(self):
         self._coin_price_cache = {}
@@ -1970,7 +1970,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
         if result is not None:
             return result
         if self.db.get_txi_addresses(txid):
-            result = self.average_price(txid, price_func, ccy) * txin_value/Decimal(COIN)
+            result = self.average_price(txid, price_func, ccy) * txin_value/Decimal(constants.net.COIN)
             self._coin_price_cache[cache_key] = result
             return result
         else:
@@ -1979,7 +1979,7 @@ class Abstract_Wallet(AddressSynchronizer, ABC):
                 return fiat_value
             else:
                 p = self.price_at_timestamp(txid, price_func)
-                return p * txin_value/Decimal(COIN)
+                return p * txin_value/Decimal(constants.net.COIN)
 
     def is_billing_address(self, addr):
         # overridden for TrustedCoin wallets

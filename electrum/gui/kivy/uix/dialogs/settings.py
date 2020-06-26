@@ -7,7 +7,7 @@ from electrum.util import base_units_list
 from electrum.i18n import languages
 from electrum.gui.kivy.i18n import _
 from electrum.plugin import run_hook
-from electrum import coinchooser
+from electrum import coinchooser, constants
 
 from .choice_dialog import ChoiceDialog
 
@@ -45,7 +45,7 @@ Builder.load_string('''
                 SettingsItem:
                     bu: app.base_unit
                     title: _('Denomination') + ': ' + self.bu
-                    description: _("Base unit for Bitcoin amounts.")
+                    description: _("Base unit for {name} amounts.").format(name=constants.net.NAME)
                     action: partial(root.unit_dialog, self)
                 CardSeparator
                 SettingsItem:

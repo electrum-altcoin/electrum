@@ -27,7 +27,8 @@ from math import floor, log10
 from typing import NamedTuple, List, Callable, Sequence, Union, Dict, Tuple
 from decimal import Decimal
 
-from .bitcoin import sha256, COIN, is_address
+from . import constants
+from .bitcoin import sha256, is_address
 from .transaction import Transaction, TxOutput, PartialTransaction, PartialTxInput, PartialTxOutput
 from .util import NotEnoughFunds
 from .logging import Logger
@@ -157,7 +158,7 @@ class CoinChooserBase(Logger):
         # Break change up if bigger than max_change
         output_amounts = [o.value for o in tx.outputs()]
         # Don't split change of less than 0.02 BTC
-        max_change = max(max(output_amounts) * 1.25, 0.02 * COIN)
+        max_change = max(max(output_amounts) * 1.25, 0.02 * constants.net.COIN)
 
         # Use N change outputs
         for n in range(1, count + 1):
@@ -461,12 +462,12 @@ class CoinChooserPrivacy(CoinChooserRandom):
             elif change < min_change:
                 badness += (min_change - change) / (min_change + 10000)
                 # Penalize really small change; under 1 mBTC ~= using 1 more input
-                if change < COIN / 1000:
+                if change < constants.net.COIN / 1000:
                     badness += 1
             elif change > max_change:
                 badness += (change - max_change) / (max_change + 10000)
                 # Penalize large change; 5 BTC excess ~= using 1 more input
-                badness += change / (COIN * 5)
+                badness += change / (constants.net.COIN * 5)
             return ScoredCandidate(badness, tx, buckets)
 
         return penalty

@@ -36,6 +36,7 @@ from concurrent import futures
 from .i18n import _
 from .util import (profiler, DaemonThread, UserCancelled, ThreadJob, UserFacingException)
 from . import bip32
+from . import constants
 from . import plugins
 from .simple_config import SimpleConfig
 from .logging import get_logger, Logger
@@ -554,11 +555,11 @@ class DeviceMgr(ThreadJob):
         # The user input has wrong PIN or passphrase, or cancelled input,
         # or it is not pairable
         raise DeviceUnpairableError(
-            _('Electrum cannot pair with your {}.\n\n'
-              'Before you request bitcoins to be sent to addresses in this '
+            _('Electrum cannot pair with your {device}.\n\n'
+              'Before you request {name_lower}s to be sent to addresses in this '
               'wallet, ensure you can pair with your device, or that you have '
-              'its seed (and passphrase, if any).  Otherwise all bitcoins you '
-              'receive will be unspendable.').format(plugin.device))
+              'its seed (and passphrase, if any).  Otherwise all {name_lower}s you '
+              'receive will be unspendable.').format(device=plugin.device, name_lower=constants.net.NAME_LOWER))
 
     def unpaired_device_infos(self, handler: Optional['HardwareHandlerBase'], plugin: 'HW_PluginBase',
                               devices: Sequence['Device'] = None,

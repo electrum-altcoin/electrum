@@ -3,10 +3,10 @@ import getpass
 import datetime
 import logging
 
-from electrum import util
+from electrum import constants, util
 from electrum import WalletStorage, Wallet
 from electrum.util import format_satoshis
-from electrum.bitcoin import is_address, COIN
+from electrum.bitcoin import is_address
 from electrum.transaction import PartialTxOutput
 from electrum.network import TxBroadcastError, BestEffortRequestFailed
 from electrum.logging import console_stderr_handler
@@ -121,11 +121,11 @@ class ElectrumGui:
                 msg = _( "Synchronizing..." )
             else:
                 c, u, x =  self.wallet.get_balance()
-                msg = _("Balance")+": %f  "%(Decimal(c) / COIN)
+                msg = _("Balance")+": %f  "%(Decimal(c) / constants.net.COIN)
                 if u:
-                    msg += "  [%f unconfirmed]"%(Decimal(u) / COIN)
+                    msg += "  [%f unconfirmed]"%(Decimal(u) / constants.net.COIN)
                 if x:
-                    msg += "  [%f unmatured]"%(Decimal(x) / COIN)
+                    msg += "  [%f unmatured]"%(Decimal(x) / constants.net.COIN)
         else:
                 msg = _( "Not connected" )
 
@@ -172,15 +172,15 @@ class ElectrumGui:
 
     def do_send(self):
         if not is_address(self.str_recipient):
-            print(_('Invalid Bitcoin address'))
+            print(_('Invalid {name} address').format(name=constants.net.NAME))
             return
         try:
-            amount = int(Decimal(self.str_amount) * COIN)
+            amount = int(Decimal(self.str_amount) * constants.net.COIN)
         except Exception:
             print(_('Invalid Amount'))
             return
         try:
-            fee = int(Decimal(self.str_fee) * COIN)
+            fee = int(Decimal(self.str_fee) * constants.net.COIN)
         except Exception:
             print(_('Invalid Fee'))
             return
