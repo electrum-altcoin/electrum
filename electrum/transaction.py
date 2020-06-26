@@ -44,8 +44,7 @@ from .bip32 import BIP32Node
 from .util import profiler, to_bytes, bh2u, bfh, chunks, is_hex_str
 from .bitcoin import (TYPE_ADDRESS, TYPE_SCRIPT, hash_160,
                       hash160_to_p2sh, hash160_to_p2pkh, hash_to_segwit_addr,
-                      var_int, TOTAL_COIN_SUPPLY_LIMIT_IN_BTC, COIN,
-                      int_to_hex, push_script, b58_address_to_hash160,
+                      var_int, int_to_hex, push_script, b58_address_to_hash160,
                       opcodes, add_number_to_script, base_decode, is_segwit_script_type)
 from .crypto import sha256d
 from .logging import get_logger
@@ -497,7 +496,7 @@ def parse_witness(vds: BCDataStream, txin: TxInput) -> None:
 
 def parse_output(vds: BCDataStream) -> TxOutput:
     value = vds.read_int64()
-    if value > TOTAL_COIN_SUPPLY_LIMIT_IN_BTC * COIN:
+    if value > constants.net.TOTAL_COIN_SUPPLY_LIMIT * constants.net.COIN:
         raise SerializationError('invalid output amount (too large)')
     if value < 0:
         raise SerializationError('invalid output amount (negative)')

@@ -18,7 +18,7 @@ from electrum.util import (profiler, InvalidPassword, send_exception_to_crash_re
                            format_satoshis, format_satoshis_plain, format_fee_satoshis,
                            maybe_extract_bolt11_invoice)
 from electrum.invoices import PR_PAID, PR_FAILED
-from electrum import blockchain
+from electrum import blockchain, constants
 from electrum.network import Network, TxBroadcastError, BestEffortRequestFailed
 from electrum.interface import PREFERRED_NETWORK_PROTOCOL, ServerAddr
 from .i18n import _
@@ -202,7 +202,7 @@ class ElectrumWindow(App):
 
     def on_new_intent(self, intent):
         data = intent.getDataString()
-        if intent.getScheme() == 'bitcoin':
+        if intent.getScheme() == constants.net.PAYMENT_URI_SCHEME:
             self.set_URI(data)
         elif intent.getScheme() == 'lightning':
             self.set_ln_invoice(data)
@@ -410,7 +410,7 @@ class ElectrumWindow(App):
         if is_address(data):
             self.set_URI(data)
             return
-        if data.startswith('bitcoin:'):
+        if data.startswith('{scheme}:'.format(constants.net.PAYMENT_URI_SCHEME)):
             self.set_URI(data)
             return
         if data.startswith('channel_backup:'):
@@ -935,7 +935,7 @@ class ElectrumWindow(App):
             icon = (os.path.dirname(os.path.realpath(__file__))
                     + '/../../' + self.icon)
             notification.notify('Electrum', message,
-                            app_icon=icon, app_name='Electrum')
+                            app_icon=icon, app_name='Electrum ({name})'.format(name=constants.net.NAME))
         except ImportError:
             Logger.Error('Notification: needs plyer; `sudo python3 -m pip install plyer`')
 

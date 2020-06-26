@@ -30,6 +30,7 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMenu, QAbstractItemView
 from PyQt5.QtCore import Qt, QItemSelectionModel, QModelIndex
 
+from electrum import constants
 from electrum.i18n import _
 from electrum.util import format_time
 from electrum.invoices import PR_TYPE_ONCHAIN, PR_TYPE_LN
@@ -194,8 +195,8 @@ class RequestList(MyTreeView):
             menu.addAction(_("Copy Request"), lambda: self.parent.do_copy(req.invoice, title='Lightning Request'))
         else:
             URI = self.wallet.get_request_URI(req)
-            menu.addAction(_("Copy Request"), lambda: self.parent.do_copy(URI, title='Bitcoin URI'))
-            menu.addAction(_("Copy Address"), lambda: self.parent.do_copy(req.get_address(), title='Bitcoin Address'))
+            menu.addAction(_("Copy Request"), lambda: self.parent.do_copy(URI, title='{name} URI'.format(name=constants.net.NAME)))
+            menu.addAction(_("Copy Address"), lambda: self.parent.do_copy(req.get_address(), title='{name} Address'.format(name=constants.net.NAME)))
         #if 'view_url' in req:
         #    menu.addAction(_("View in web browser"), lambda: webopen(req['view_url']))
         menu.addAction(_("Delete"), lambda: self.parent.delete_requests([key]))

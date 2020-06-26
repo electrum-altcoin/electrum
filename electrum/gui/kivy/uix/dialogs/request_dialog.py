@@ -6,6 +6,7 @@ from kivy.core.clipboard import Clipboard
 from kivy.app import App
 from kivy.clock import Clock
 
+from electrum import constants
 from electrum.gui.kivy.i18n import _
 from electrum.invoices import pr_tooltips, pr_color
 from electrum.invoices import PR_UNKNOWN, PR_UNPAID, PR_FAILED, PR_TYPE_LN
@@ -123,7 +124,7 @@ class RequestDialog(Factory.Popup):
         Clock.schedule_once(lambda dt: self.app.show_info(msg))
 
     def do_share(self):
-        self.app.do_share(self.data, _("Share Bitcoin Request"))
+        self.app.do_share(self.data, _("Share {name} Request").format(name=constants.net.NAME))
         self.dismiss()
 
     def delete_dialog(self):

@@ -6,7 +6,7 @@ from kivy.factory import Factory
 from electrum.gui.kivy.i18n import _
 from electrum.lnaddr import lndecode
 from electrum.util import bh2u
-from electrum.bitcoin import COIN
+from electrum import constants
 import electrum.simple_config as config
 
 from .label_dialog import LabelDialog
@@ -118,7 +118,7 @@ class LightningOpenChannelDialog(Factory.Popup):
             fee = self.app.electrum_config.fee_per_kb()
             if not fee:
                 fee = config.FEERATE_FALLBACK_STATIC_FEE
-            self.amount = self.app.format_amount_and_units(self.lnaddr.amount * COIN + fee * 2)
+            self.amount = self.app.format_amount_and_units(self.lnaddr.amount * constants.net.COIN + fee * 2)
             self.pubkey = bh2u(self.lnaddr.pubkey.serialize())
         if self.msg:
             self.app.show_info(self.msg)

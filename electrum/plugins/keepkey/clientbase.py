@@ -2,7 +2,7 @@ import time
 from struct import pack
 from typing import Optional
 
-from electrum import ecc
+from electrum import constants, ecc
 from electrum.i18n import _
 from electrum.util import UserCancelled
 from electrum.keystore import bip39_normalize_passphrase
@@ -67,9 +67,9 @@ class GuiMixin(object):
     def callback_PassphraseRequest(self, req):
         if self.creating_wallet:
             msg = _("Enter a passphrase to generate this wallet.  Each time "
-                    "you use this wallet your {} will prompt you for the "
+                    "you use this wallet your {device} will prompt you for the "
                     "passphrase.  If you forget the passphrase you cannot "
-                    "access the bitcoins in the wallet.").format(self.device)
+                    "access the {name_lower}s in the wallet.").format(device=self.device, name_lower=constants.net.NAME_LOWER)
         else:
             msg = _("Enter the passphrase to unlock this wallet:")
         passphrase = self.handler.get_passphrase(msg, self.creating_wallet)

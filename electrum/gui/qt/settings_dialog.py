@@ -32,9 +32,8 @@ from PyQt5.QtWidgets import (QComboBox,  QTabWidget,
                              QPushButton, QWidget)
 
 from electrum.i18n import _
-from electrum import util, coinchooser, paymentrequest
-from electrum.util import base_units_list
-
+from electrum import constants, util, coinchooser, paymentrequest
+\
 from .util import (ColorScheme, WindowModalDialog, HelpLabel, Buttons,
                    CloseButton)
 
@@ -179,9 +178,11 @@ you close all your wallet windows. Use this to keep your local watchtower runnin
         oa_widgets.append((alias_label, self.alias_e))
 
         # units
-        units = base_units_list
+        units = constants.net.BASE_UNITS_LIST
         msg = (_('Base unit of your wallet.')
-               + '\n1 BTC = 1000 mBTC. 1 mBTC = 1000 bits. 1 bit = 100 sat.\n'
+               + '\n1 {btc} = 1000 {mbtc}. 1 {mbtc} = 1000 {bits}. 1 {bits} = 100 {sat}.\n'.format(
+                   btc=units[0], mbtc=units[1], bits=units[2], sat=units[3]
+               )
                + _('This setting affects the Send tab, and all balance related fields.'))
         unit_label = HelpLabel(_('Base unit') + ':', msg)
         unit_combo = QComboBox()

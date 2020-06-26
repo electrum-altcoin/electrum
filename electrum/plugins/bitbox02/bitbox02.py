@@ -184,7 +184,7 @@ class BitBox02Client(HardwareClientBase):
             )
 
     def coin_network_from_electrum_network(self) -> int:
-        if constants.net.TESTNET:
+        if constants.net == constants.net.BitcoinTestnet:
             return bitbox02.btc.TBTC
         return bitbox02.btc.BTC
 

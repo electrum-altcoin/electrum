@@ -13,7 +13,7 @@ from aiorpcx import NetAddress
 
 from . import util
 from . import constants
-from .util import base_units, base_unit_name_to_decimal_point, decimal_point_to_base_unit_name, UnknownBaseUnit, DECIMAL_POINT_DEFAULT
+from .util import base_unit_name_to_decimal_point, decimal_point_to_base_unit_name, UnknownBaseUnit
 from .util import format_satoshis, format_fee_satoshis
 from .util import user_dir, make_dir, NoDynamicFeeEstimates, quantize_feerate
 from .i18n import _
@@ -105,11 +105,11 @@ class SimpleConfig(Logger):
         self._check_dependent_keys()
 
         # units and formatting
-        self.decimal_point = self.get('decimal_point', DECIMAL_POINT_DEFAULT)
+        self.decimal_point = self.get('decimal_point', constants.net.DECIMAL_POINT_DEFAULT)
         try:
             decimal_point_to_base_unit_name(self.decimal_point)
         except UnknownBaseUnit:
-            self.decimal_point = DECIMAL_POINT_DEFAULT
+            self.decimal_point = constants.net.DECIMAL_POINT_DEFAULT
         self.num_zeros = int(self.get('num_zeros', 0))
 
     def electrum_path(self):
@@ -120,14 +120,8 @@ class SimpleConfig(Logger):
             path = self.user_dir()
 
         make_dir(path, allow_symlink=False)
-        if self.get('testnet'):
-            path = os.path.join(path, 'testnet')
-            make_dir(path, allow_symlink=False)
-        elif self.get('regtest'):
-            path = os.path.join(path, 'regtest')
-            make_dir(path, allow_symlink=False)
-        elif self.get('simnet'):
-            path = os.path.join(path, 'simnet')
+        if constants.net.DATA_DIR:
+            path = os.path.join(path, constants.net.DATA_DIR)
             make_dir(path, allow_symlink=False)
 
         self.logger.info(f"electrum directory {path}")
@@ -626,7 +620,7 @@ class SimpleConfig(Logger):
         return decimal_point_to_base_unit_name(self.decimal_point)
 
     def set_base_unit(self, unit):
-        assert unit in base_units.keys()
+        assert unit in constants.net.BASE_UNITS.keys()
         self.decimal_point = base_unit_name_to_decimal_point(unit)
         self.set_key('decimal_point', self.decimal_point, True)
 
