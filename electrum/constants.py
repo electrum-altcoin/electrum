@@ -24,6 +24,7 @@
 # SOFTWARE.
 from .networks import *
 from .networks.auxpow_mixin import AuxPowMixin
+from .networks.stake_mixin import StakeMixin
 
 GIT_REPO_URL = 'https://github.com/electrum-altcoin/electrum'
 GIT_REPO_ISSUES_URL = GIT_REPO_URL + '/issues'

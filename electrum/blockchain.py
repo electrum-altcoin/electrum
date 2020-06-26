@@ -315,39 +315,33 @@ class Blockchain(Logger):
         p = self.path()
         self._size = os.path.getsize(p)//constants.net.HEADER_SIZE if os.path.exists(p) else 0
 
-    @classmethod
-    def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None, skip_auxpow: bool=False) -> None:
+    def verify_header(self, header: dict, prev_hash: str, expected_header_hash: str=None, skip_auxpow: bool=False) -> None:
         _hash = hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
         if prev_hash != header.get('prev_block_hash'):
             raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
-        if constants.net.TESTNET:
+
+        if issubclass(constants.net, constants.StakeMixin) and constants.net.is_pos_active(header):
             return
-        bits = cls.target_to_bits(target)
+
+        target = self.get_target(header['block_height'])
+        bits = self.target_to_bits(target)
         if bits != header.get('bits'):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
 
-        if issubclass(constants.net, constants.AuxPowMixin):
-            # Don't verify AuxPoW when covered by a checkpoint
-            if header.get('block_height') <= constants.net.max_checkpoint():
-                skip_auxpow = True
-            if not skip_auxpow:
-                _pow_hash = auxpow.hash_parent_header(header)
-                block_hash_as_num = int.from_bytes(bfh(_pow_hash), byteorder='big')
-                if block_hash_as_num > target:
-                    raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
-        else:
-            block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
-            if block_hash_as_num > target:
-                raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
+        if issubclass(constants.net, constants.AuxPowMixin) and constants.net.is_auxpow_active(header):
+            _hash = auxpow.hash_parent_header(header)
+
+        block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
+        if block_hash_as_num > target:
+            raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
     def verify_chunk(self, index: int, data: bytes) -> bytes:
         stripped = bytearray()
         start_position = 0
         start_height = index * 2016
         prev_hash = self.get_hash(start_height - 1)
-        target = self.get_target(index-1)
         i = 0
         while start_position < len(data):
             height = start_height + i
@@ -360,7 +354,8 @@ class Blockchain(Logger):
             stripped.extend(data[start_position:start_position+constants.net.HEADER_SIZE])
 
             header, start_position = deserialize_full_header(data, index*2016 + i, expect_trailing_data=True, start_position=start_position)
-            self.verify_header(header, prev_hash, target, expected_header_hash)
+            self.verify_header(header, prev_hash, expected_header_hash)
+            self.save_header(header)
             prev_hash = hash_header(header)
             i = i + 1
         return bytes(stripped)
@@ -491,8 +486,9 @@ class Blockchain(Logger):
     def save_header(self, header: dict) -> None:
         delta = header.get('block_height') - self.forkpoint
         data = bfh(serialize_header(header))
+        # FIXME remove after tests!! assert isn't needed as the chunk is saved header by header
         # headers are only _appended_ to the end:
-        assert delta == self.size(), (delta, self.size())
+        # assert delta == self.size(), (delta, self.size())
         assert len(data) == constants.net.HEADER_SIZE
         self.write(data, delta*constants.net.HEADER_SIZE)
         self.swap_with_parent()
@@ -633,12 +629,7 @@ class Blockchain(Logger):
             _logger.error(f"[Blockchain] Previous block hash doesnt match prev_hash")
             return False
         try:
-            target = self.get_target(height // 2016 - 1)
-        except MissingHeader as exc:
-            _logger.error(f"[Blockchain] couldnt get target: {exc}")
-            return False
-        try:
-            self.verify_header(header, prev_hash, target, skip_auxpow=skip_auxpow)
+            self.verify_header(header, prev_hash, skip_auxpow=skip_auxpow)
         except BaseException as e:
             _logger.error(f"[Blockchain] error verifying header: {e}")
             return False
