@@ -71,16 +71,21 @@ class CrowncoinMainnet(AbstractNet, AuxPowMixin, StakeMixin):
 
 
     @classmethod
-    def get_target(cls, height: int, blockchain) -> int:       
-        if height == 0:
+    def get_target(cls, height: int, blockchain) -> int: 
+        index = height // 2016 - 1
+        if index == -1:
             return cls.MAX_TARGET
 
+        if index < len(blockchain.checkpoints):
+            h, t = blockchain.checkpoints[index]
+            return t
+     
         if height >= cls.DGW_FORK_BLOCK:
             return cls.get_target_dgw(height, blockchain)
-        return cls.get_target_btc(0, height, blockchain)
+        return cls.get_target_btc(height, blockchain)
 
     @classmethod
-    def get_target_btc(cls, index: int, height: int, blockchain) -> int:
+    def get_target_btc(cls, height: int, blockchain) -> int:
         if not height % cls.INTERVAL == 0:
             # Get the first block of this retarget period
             last = blockchain.read_header(height - 1)

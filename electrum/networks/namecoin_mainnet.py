@@ -75,31 +75,44 @@ class NamecoinMainnet(AbstractNet, AuxPowMixin):
     # height 155232); we set a limit of 20 MB so that we have extra wiggle room.
     MAX_INCOMING_MSG_SIZE = 20_000_000  # in bytes
     
+    TARGET_TIMESPAN = int(14 * 24 * 60 * 60)
+    TARGET_SPACING = int(10 * 60)
+    INTERVAL = int(TARGET_TIMESPAN / TARGET_SPACING)
+
     @classmethod
-    def get_target(cls, index: int, blockchain) -> int:
+    def get_target(cls, height: int, blockchain) -> int:
+        index = height // 2016 - 1
         if index == -1:
             return cls.MAX_TARGET
+
         if index < len(blockchain.checkpoints):
             h, t = blockchain.checkpoints[index]
             return t
 
+        if not height % cls.INTERVAL == 0:
+            # Get the first block of this retarget period
+            last = blockchain.read_header(height - 1)
+            if not last:
+                raise MissingHeader()
+            return blockchain.bits_to_target(last['bits'])
+
         # new target
         if (index * 2016 + 2015 > 19200) and (index * 2016 + 2015 + 1 > 2016):
             # Namecoin: Apply retargeting hardfork after AuxPoW start
-            first = blockchain.read_header(index * 2016 - 1)
+            first = blockchain.read_header(index * cls.INTERVAL - 1)
         else:
-            first = blockchain.read_header(index * 2016)
-        last = blockchain.read_header(index * 2016 + 2015)
+            first = blockchain.read_header(index * cls.INTERVAL)
+
+        last = blockchain.read_header(height - 1)
         if not first or not last:
             raise MissingHeader()
 
         bits = last.get('bits')
         target = blockchain.bits_to_target(bits)
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan // 4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
-        new_target = min(cls.MAX_TARGET, (target * nActualTimespan) // nTargetTimespan)
+        nActualTimespan = max(nActualTimespan, cls.TARGET_TIMESPAN // 4)
+        nActualTimespan = min(nActualTimespan, cls.TARGET_TIMESPAN * 4)
+        new_target = min(cls.MAX_TARGET, (target * nActualTimespan) // cls.TARGET_TIMESPAN)
         # not any target can be represented in 32 bits:
         new_target = blockchain.bits_to_target(blockchain.target_to_bits(new_target))
         return new_target
