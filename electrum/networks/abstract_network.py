@@ -9,7 +9,8 @@ class AbstractNet(object):
     HEADER_SIZE = 80  # bytes
     MAX_TARGET = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
     MAX_INCOMING_MSG_SIZE = 1_000_000  # in bytes
-
+    INTERVAL = 2016
+    
     @classmethod
     def max_checkpoint(cls) -> int:
         return max(0, len(cls.CHECKPOINTS) * 2016 - 1)

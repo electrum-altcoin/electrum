@@ -41,3 +41,7 @@ electrum/*.so
 electrum/*.so.0
 electrum/*.dll
 electrum/*.dylib
+.DS_Store
+electrum-dev-build-multicoin.zip
+contrib/osx/libsecp256k1.0.dylib
+contrib/osx/libusb-1.0.dylib

@@ -1100,6 +1100,10 @@ class Commands:
         """ return the local watchtower's ctn of channel. used in regtests """
         return await self.network.local_watchtower.sweepstore.get_ctn(channel_point, None)
 
+    @command('n')
+    async def get_checkpoints(self, file_path, wallet: Abstract_Wallet = None):
+        """ Dump checkpoints to a file """
+        return self.network.export_checkpoints(file_path)
 
 def eval_bool(x: str) -> bool:
     if x == 'false': return False
@@ -1147,7 +1151,6 @@ command_options = {
     'from_coins':  (None, "Source coins (must be in wallet; use sweep to spend from non-wallet address)."),
     'change_addr': ("-c", "Change address. Default is a spare address, or the source address if it's not in the wallet"),
     'nbits':       (None, "Number of bits of entropy"),
-    'seed_type':   (None, "The type of seed to create, e.g. 'standard' or 'segwit'"),
     'language':    ("-L", "Default language for wordlist"),
     'passphrase':  (None, "Seed extension"),
     'privkey':     (None, "Private key. Set to '?' to get a prompt."),
@@ -1174,9 +1177,18 @@ command_options = {
     'to_height':   (None, "Only show transactions that confirmed before given block height"),
     'iknowwhatimdoing': (None, "Acknowledge that I understand the full implications of what I am about to do"),
     'gossip':      (None, "Apply command to gossip node instead of wallet"),
+    'file_path':   (None, "Path to save the network checkpoints"),
 }
 
-
+if hasattr(constants.net, 'SEGWIT_HRP'):
+    command_options.update({
+        'seed_type':   (None, "The type of seed to create, e.g. 'standard' or 'segwit'"),
+    })
+else:
+    command_options.update({
+        'seed_type':   (None, "The type of seed to create, e.g. 'standard'"),
+    })
+    
 # don't use floats because of rounding errors
 from .transaction import convert_raw_tx_to_hex
 json_loads = lambda x: json.loads(x, parse_float=lambda x: str(Decimal(x)))

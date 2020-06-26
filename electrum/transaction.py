@@ -453,6 +453,9 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Optional[str]:
     if match_script_against_template(decoded, SCRIPTPUBKEY_TEMPLATE_P2SH):
         return hash160_to_p2sh(decoded[1][1], net=net)
 
+    if not hasattr(constants.net, 'SEGWIT_HRP'):
+        return None
+
     # segwit address (version 0)
     if match_script_against_template(decoded, SCRIPTPUBKEY_TEMPLATE_WITNESS_V0):
         return hash_to_segwit_addr(decoded[1][1], witver=0, net=net)
@@ -691,6 +694,9 @@ class Transaction:
 
     @classmethod
     def is_segwit_input(cls, txin: 'TxInput', *, guess_for_address=False) -> bool:
+        if not hasattr(constants.net, 'SEGWIT_HRP'):
+            return False
+            
         if txin.witness not in (b'\x00', b'', None):
             return True
         if not isinstance(txin, PartialTxInput):
@@ -719,9 +725,10 @@ class Transaction:
         # the estimation will not be precise.
         if addr is None:
             return 'p2wpkh'
-        witver, witprog = segwit_addr.decode(constants.net.SEGWIT_HRP, addr)
-        if witprog is not None:
-            return 'p2wpkh'
+        if hasattr(constants.net, 'SEGWIT_HRP'):
+            witver, witprog = segwit_addr.decode(constants.net.SEGWIT_HRP, addr)
+            if witprog is not None:
+                return 'p2wpkh'
         addrtype, hash_160_ = b58_address_to_hash160(addr)
         if addrtype == constants.net.ADDRTYPE_P2PKH:
             return 'p2pkh'
@@ -865,8 +872,7 @@ class Transaction:
             flag = '01'
             witness = ''.join(self.serialize_witness(x, estimate_size=estimate_size) for x in inputs)
             return nVersion + marker + flag + txins + txouts + witness + nLocktime
-        else:
-            return nVersion + txins + txouts + nLocktime
+        return nVersion + txins + txouts + nLocktime
 
     def txid(self) -> Optional[str]:
         if self._cached_txid is None:
@@ -1420,6 +1426,9 @@ class PartialTxInput(TxInput, PSBTSection):
     def ensure_there_is_only_one_utxo(self):
         # we prefer having the full previous tx, even for segwit inputs. see #6198
         # for witness v1, witness_utxo will be enough though
+        if not hasattr(constants.net, 'SEGWIT_HRP'):
+            self.witness_utxo = None
+            
         if self.utxo is not None and self.witness_utxo is not None:
             self.witness_utxo = None
 

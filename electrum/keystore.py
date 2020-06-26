@@ -973,11 +973,15 @@ def purpose48_derivation(account_id: int, xtype: str) -> str:
 
 
 def from_seed(seed, passphrase, is_p2sh=False):
+    types = ['standard']
+    if hasattr(constants.net, 'SEGWIT_HRP'):
+        types.append('segwit')
+
     t = seed_type(seed)
     if t == 'old':
         keystore = Old_KeyStore({})
         keystore.add_seed(seed)
-    elif t in ['standard', 'segwit']:
+    elif t in types:
         keystore = BIP32_KeyStore({})
         keystore.add_seed(seed)
         keystore.passphrase = passphrase
