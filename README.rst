@@ -1,10 +1,11 @@
-Electrum - Lightweight Bitcoin client
+Electrum - Lightweight CryptoCurrency client
 =====================================
 
 ::
 
   Licence: MIT Licence
   Author: Thomas Voegtlin
+  Maintainer: Ahmed Bodiwala
   Language: Python (>= 3.6)
   Homepage: https://electrum.org/
 
