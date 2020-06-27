@@ -1,7 +1,9 @@
 name: Release Build
 
 on:
-  push
+  push:
+    tags:
+      - 'v*.*.*'
   
 jobs:
   osx-build:
@@ -15,14 +17,14 @@ jobs:
         run: |
           cd electrum |
           ./contrib/osx/make_osx
-          zip -r release dist
+          zip -r osx.zip dist
 
       - name: Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: release.zip
+          files: osx.zip
           
   linux-build:
     name: Build Linux Release Asset
@@ -40,12 +42,15 @@ jobs:
       - name: Build project
         run: sudo docker run --name electrum-appimage-builder-cont -v $PWD:/opt/electrum --rm --workdir /opt/electrum/contrib/build-linux/appimage electrum-appimage-builder-img ./build.sh
 
+      - name: Zip Files
+        run: zip -r linux.zip dist
+
       - name: Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: ./dist
+          files: linux.zip
 
   windows-build:
     name: Build Windows Release Asset
@@ -63,9 +68,12 @@ jobs:
       - name: Build project
         run: sudo docker run --name electrum-wine-builder-cont -v $PWD:/opt/wine64/drive_c/electrum --rm --workdir /opt/wine64/drive_c/electrum/contrib/build-wine electrum-wine-builder-img ./build.sh
 
+      - name: Zip Files
+        run: zip -r windows.zip ./contrib/build-wine/dist
+
       - name: Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: ./contrib/build-wine/dist
+          files: windows.zip
