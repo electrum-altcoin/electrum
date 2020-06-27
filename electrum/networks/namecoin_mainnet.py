@@ -101,7 +101,7 @@ class NamecoinMainnet(AbstractNet, AuxPowMixin):
             # Namecoin: Apply retargeting hardfork after AuxPoW start
             first = blockchain.read_header(height - cls.INTERVAL - 1)
         else:
-            first = blockchain.read_header(hight - cls.INTERVAL)
+            first = blockchain.read_header(height - cls.INTERVAL)
 
         last = blockchain.read_header(height - 1)
         if not first or not last:
