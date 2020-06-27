@@ -47,3 +47,7 @@ class BitcoinTestnet(BitcoinMainnet):
         'smartbit.com.au': ('https://testnet.smartbit.com.au/', {'tx': 'tx/', 'addr': 'address/'}),
         'system default': ('blockchain://000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943/', {'tx': 'tx/', 'addr': 'address/'}),
     } 
+
+    @classmethod
+    def get_target(cls, height: int, blockchain) -> int:
+        return 0

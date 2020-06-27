@@ -418,16 +418,24 @@ class BaseWizard(Logger):
             default_choice_idx = 2
             choices = [
                 ('standard',   'legacy multisig (p2sh)',            normalize_bip32_derivation("m/45'/0")),
-                ('p2wsh-p2sh', 'p2sh-segwit multisig (p2wsh-p2sh)', purpose48_derivation(0, xtype='p2wsh-p2sh')),
-                ('p2wsh',      'native segwit multisig (p2wsh)',    purpose48_derivation(0, xtype='p2wsh')),
             ]
+
+            if constants.net.is_segwit_enabled():
+                choices += [
+                    ('p2wsh-p2sh', 'p2sh-segwit multisig (p2wsh-p2sh)', purpose48_derivation(0, xtype='p2wsh-p2sh')),
+                    ('p2wsh',      'native segwit multisig (p2wsh)',    purpose48_derivation(0, xtype='p2wsh')),
+                ]
         else:
             default_choice_idx = 2
             choices = [
                 ('standard',    'legacy (p2pkh)',            bip44_derivation(0, bip43_purpose=44)),
-                ('p2wpkh-p2sh', 'p2sh-segwit (p2wpkh-p2sh)', bip44_derivation(0, bip43_purpose=49)),
-                ('p2wpkh',      'native segwit (p2wpkh)',    bip44_derivation(0, bip43_purpose=84)),
             ]
+
+            if constants.net.is_segwit_enabled():
+                choices += [
+                    ('p2wpkh-p2sh', 'p2sh-segwit (p2wpkh-p2sh)', bip44_derivation(0, bip43_purpose=49)),
+                    ('p2wpkh',      'native segwit (p2wpkh)',    bip44_derivation(0, bip43_purpose=84)),
+                ]
         while True:
             try:
                 self.choice_and_line_dialog(
@@ -486,16 +494,18 @@ class BaseWizard(Logger):
     def restore_from_seed(self):
         self.opt_bip39 = True
         self.opt_ext = True
-        is_cosigning_seed = lambda x: mnemonic.seed_type(x) in ['standard', 'segwit']
+        seed_types = ['standard'] if not constants.net.is_segwit_enabled() else ['standard', 'segwit']
+        is_cosigning_seed = lambda x: mnemonic.seed_type(x) in seed_types
         test = mnemonic.is_seed if self.wallet_type == 'standard' else is_cosigning_seed
         self.restore_seed_dialog(run_next=self.on_restore_seed, test=test)
 
     def on_restore_seed(self, seed, is_bip39, is_ext):
+        seed_types = ['standard'] if not constants.net.is_segwit_enabled() else ['standard', 'segwit']
         self.seed_type = 'bip39' if is_bip39 else mnemonic.seed_type(seed)
         if self.seed_type == 'bip39':
             f = lambda passphrase: self.on_restore_bip39(seed, passphrase)
             self.passphrase_dialog(run_next=f, is_restoring=True) if is_ext else f('')
-        elif self.seed_type in ['standard', 'segwit']:
+        elif self.seed_type in seed_types:
             f = lambda passphrase: self.run('create_keystore', seed, passphrase)
             self.passphrase_dialog(run_next=f, is_restoring=True) if is_ext else f('')
         elif self.seed_type == 'old':
@@ -655,9 +665,13 @@ class BaseWizard(Logger):
             ])
         if choices is None:
             choices = [
-                ('create_segwit_seed', _('Segwit')),
                 ('create_standard_seed', _('Legacy')),
             ]
+            if constants.net.is_segwit_enabled():
+                choices += [
+                    ('create_segwit_seed', _('Segwit')),
+                ]
+                
         self.choice_dialog(title=title, message=message, choices=choices, run_next=self.run)
 
     def create_segwit_seed(self): self.create_seed('segwit')

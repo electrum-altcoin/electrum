@@ -327,16 +327,28 @@ def hash_encode(x: bytes) -> str:
 def hash_decode(x: str) -> bytes:
     return bfh(x)[::-1]
 
+def Hash(x):
+    x = to_bytes(x, 'utf8')
+    out = bytes(sha256(sha256(x)))
+    return out
 
 ############ functions from pywallet #####################
 
 def hash160_to_b58_address(h160: bytes, addrtype: int) -> str:
+    override = getattr(constants.net, 'hash160_to_b58_address', None)
+    if callable(override):
+        return override(h160, addrtype)
+
     s = bytes([addrtype]) + h160
     s = s + sha256d(s)[0:4]
     return base_encode(s, base=58)
 
 
 def b58_address_to_hash160(addr: str) -> Tuple[int, bytes]:
+    override = getattr(constants.net, 'b58_address_to_hash160', None)
+    if callable(override):
+        return override(addr)
+
     addr = to_bytes(addr, 'ascii')
     _bytes = DecodeBase58Check(addr)
     if len(_bytes) != 21:
@@ -415,13 +427,14 @@ def address_to_script(addr: str, *, net=None) -> str:
     if net is None: net = constants.net
     if not is_address(addr, net=net):
         raise BitcoinException("invalid {name} address: {addr}".format(name=net.NAME_LOWER, addr=addr))
-    witver, witprog = segwit_addr.decode(net.SEGWIT_HRP, addr)
-    if witprog is not None:
-        if not (0 <= witver <= 16):
-            raise BitcoinException(f'impossible witness version: {witver}')
-        script = bh2u(add_number_to_script(witver))
-        script += push_script(bh2u(bytes(witprog)))
-        return script
+    if net.is_segwit_enabled():
+        witver, witprog = segwit_addr.decode(net.SEGWIT_HRP, addr)
+        if witprog is not None:
+            if not (0 <= witver <= 16):
+                raise BitcoinException(f'impossible witness version: {witver}')
+            script = bh2u(add_number_to_script(witver))
+            script += push_script(bh2u(bytes(witprog)))
+            return script
     addrtype, hash_160_ = b58_address_to_hash160(addr)
     if addrtype == net.ADDRTYPE_P2PKH:
         script = pubkeyhash_to_p2pkh_script(bh2u(hash_160_))
@@ -449,16 +462,17 @@ def address_to_hash(addr: str, *, net=None) -> Tuple[OnchainOutputType, bytes]:
     if net is None: net = constants.net
     if not is_address(addr, net=net):
         raise BitcoinException("invalid {name_lower} address: {addr}".format(name_lower=net.NAME_LOWER, addr=addr))
-    witver, witprog = segwit_addr.decode(net.SEGWIT_HRP, addr)
-    if witprog is not None:
-        if witver != 0:
-            raise BitcoinException(f"not implemented handling for witver={witver}")
-        if len(witprog) == 20:
-            return OnchainOutputType.WITVER0_P2WPKH, bytes(witprog)
-        elif len(witprog) == 32:
-            return OnchainOutputType.WITVER0_P2WSH, bytes(witprog)
-        else:
-            raise BitcoinException(f"unexpected length for segwit witver=0 witprog: len={len(witprog)}")
+    if net.is_segwit_enabled():
+        witver, witprog = segwit_addr.decode(net.SEGWIT_HRP, addr)
+        if witprog is not None:
+            if witver != 0:
+                raise BitcoinException(f"not implemented handling for witver={witver}")
+            if len(witprog) == 20:
+                return OnchainOutputType.WITVER0_P2WPKH, bytes(witprog)
+            elif len(witprog) == 32:
+                return OnchainOutputType.WITVER0_P2WSH, bytes(witprog)
+            else:
+                raise BitcoinException(f"unexpected length for segwit witver=0 witprog: len={len(witprog)}")
     addrtype, hash_160_ = b58_address_to_hash160(addr)
     if addrtype == net.ADDRTYPE_P2PKH:
         return OnchainOutputType.P2PKH, hash_160_
@@ -675,6 +689,7 @@ def address_from_private_key(sec: str) -> str:
 
 def is_segwit_address(addr: str, *, net=None) -> bool:
     if net is None: net = constants.net
+    if not net.is_segwit_enabled(): return False
     try:
         witver, witprog = segwit_addr.decode(net.SEGWIT_HRP, addr)
     except Exception as e:
@@ -683,6 +698,9 @@ def is_segwit_address(addr: str, *, net=None) -> bool:
 
 def is_b58_address(addr: str, *, net=None) -> bool:
     if net is None: net = constants.net
+    override = getattr(constants.net, 'is_b58_address', None)
+    if callable(override):
+        return override(addr, net=net)
     try:
         # test length, checksum, encoding:
         addrtype, h = b58_address_to_hash160(addr)

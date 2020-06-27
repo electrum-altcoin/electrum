@@ -7,8 +7,8 @@ Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum %u"
 GenericName[en_US]=Bitcoin Wallet
 GenericName=Bitcoin Wallet
 Icon=electrum
-Name[en_US]=Electrum Bitcoin Wallet
-Name=Electrum Bitcoin Wallet
+Name[en_US]=Launch Bitcoin Wallet
+Name=Launch Bitcoin Wallet
 Categories=Finance;Network;
 StartupNotify=true
 StartupWMClass=electrum
@@ -17,6 +17,14 @@ Type=Application
 MimeType=x-scheme-handler/bitcoin;
 Actions=Testnet;
 
-[Desktop Action Testnet]
-Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum --testnet %u"
-Name=Testnet mode
+[Desktop Action Bitcoin Testnet]
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum --network Bitcoin-Testnet %u"
+Name=Launch Bitcoin Testnet
+
+[Desktop Action Namecoin]
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum --network Namecoin %u"
+Name=Launch Namecoin Wallet
+
+[Desktop Action Crowncoin]
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum --network Crowncoin %u"
+Name=Launch Crowncoin Wallet
