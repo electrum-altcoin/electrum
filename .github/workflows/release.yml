@@ -38,7 +38,7 @@ jobs:
         run: sudo docker build -t electrum-appimage-builder-img contrib/build-linux/appimage
         
       - name: Build project
-        run: sudo docker run -it --name electrum-appimage-builder-cont -v $PWD:/opt/electrum --rm --workdir /opt/electrum/contrib/build-linux/appimage electrum-appimage-builder-img ./build.sh
+        run: sudo docker run --name electrum-appimage-builder-cont -v $PWD:/opt/electrum --rm --workdir /opt/electrum/contrib/build-linux/appimage electrum-appimage-builder-img ./build.sh
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -46,3 +46,61 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: ./dist
+
+  windows-build:
+    name: Build Windows Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Enter Code Directory
+        run: cd electrum
+        
+      - name: Install Dependencies
+        run: sudo docker build -t electrum-wine-builder-img contrib/build-wine
+        
+      - name: Build project
+        run: sudo docker run --name electrum-wine-builder-cont -v $PWD:/opt/wine64/drive_c/electrum --rm --workdir /opt/wine64/drive_c/electrum/contrib/build-wine electrum-wine-builder-img ./build.sh
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./contrib/build-wine/dist
+
+  android-build:
+    name: Build Android Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Enter Code Directory
+        run: cd electrum
+        
+      - name: Install Dependencies
+        run: sudo docker build -t electrum-android-builder-img contrib/android
+        
+      - name: Build Locale
+        run: ./contrib/pull_locale
+
+      - name: Install Python3 Setuptools
+        run: sudo apt-get install python3-setuptools
+
+      - name: Build Pure Python Dependencies
+        run: ./contrib/make_packages
+
+      - name: Make Bulldozer folders
+        run:  mkdir --parents $PWD/.buildozer/.gradle
+
+      - name: Build project
+        run: sudo docker run --rm --name electrum-android-builder-cont -v $PWD:/home/user/wspace/electrum -v $PWD/.buildozer/.gradle:/home/user/.gradle -v ~/.keystore:/home/user/.keystore --workdir /home/user/wspace/electrum electrum-android-builder-img ./contrib/android/make_apk
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./bin
