@@ -86,6 +86,8 @@ setup(
             'wordlist/*.txt',
             'locale/*/LC_MESSAGES/electrum.mo',
             'lnwire/*.csv',
+            'servers/*.json',
+            'checkpoints/*.json',
         ],
         'electrum.gui': [
             'icons/*',
