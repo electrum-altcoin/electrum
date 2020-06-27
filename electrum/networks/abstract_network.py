@@ -18,3 +18,7 @@ class AbstractNet(object):
     @classmethod
     def rev_genesis_bytes(cls) -> bytes:
         return bytes.fromhex(bitcoin.rev_hex(cls.GENESIS))
+
+    @classmethod
+    def is_segwit_enabled(cls) -> bool:
+        return hasattr(cls, 'SEGWIT_HRP') and cls.SEGWIT_HRP

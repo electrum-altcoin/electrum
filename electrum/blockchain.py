@@ -25,7 +25,7 @@ import threading
 import time
 from typing import Optional, Dict, Mapping, Sequence
 
-from . import constants, util
+from . import auxpow, constants, util
 from .bitcoin import hash_encode, int_to_hex, rev_hex
 from .crypto import sha256d
 from .exceptions import MissingHeader, InvalidHeader
@@ -45,7 +45,7 @@ def serialize_header(header_dict: dict) -> str:
         + int_to_hex(int(header_dict['nonce']), 4)
     return s
 
-def deserialize_header(s: bytes, height: int) -> dict:
+def deserialize_pure_header(s: bytes, height: int) -> dict:
     if not s:
         raise InvalidHeader('Invalid header: {}'.format(s))
     if len(s) != constants.net.HEADER_SIZE:
@@ -59,6 +59,28 @@ def deserialize_header(s: bytes, height: int) -> dict:
     h['bits'] = hex_to_int(s[72:76])
     h['nonce'] = hex_to_int(s[76:80])
     h['block_height'] = height
+    return h
+
+def deserialize_full_header(s: bytes, height: int, expect_trailing_data=False, start_position=0):
+    """Deserialises a full block header which may include AuxPoW.
+    If expect_trailing_data is true, then we allow trailing data and return
+    the end position in the byte array alongside the header dict.  Otherwise
+    an error is raised if there is trailing, unconsumed data."""
+
+    original_start = start_position
+
+    pure_header_bytes = s[start_position : start_position + constants.net.HEADER_SIZE]
+    h = deserialize_pure_header(pure_header_bytes, height)
+    start_position += constants.net.HEADER_SIZE
+        
+    if issubclass(constants.net, constants.AuxPowMixin) and constants.net.is_auxpow_active(h) and height > constants.net.max_checkpoint():
+        h['auxpow'], start_position = auxpow.deserialize_auxpow_header(h, s, start_position=start_position)
+
+    if expect_trailing_data:
+        return h, start_position
+
+    if start_position != len(s):
+        raise Exception('Invalid header length: {}'.format(len(s) - original_start))
     return h
 
 def hash_header(header: dict) -> str:
@@ -89,7 +111,7 @@ def read_blockchains(config: 'SimpleConfig'):
     # consistency checks
     if best_chain.height() > constants.net.max_checkpoint():
         header_after_cp = best_chain.read_header(constants.net.max_checkpoint()+1)
-        if not header_after_cp or not best_chain.can_connect(header_after_cp, check_height=False):
+        if not header_after_cp or not best_chain.can_connect(header_after_cp, check_height=False, skip_auxpow=True):
             _logger.info("[blockchain] deleting best chain. cannot connect header after last cp to last cp.")
             os.unlink(best_chain.path())
             best_chain.update_size()
@@ -286,37 +308,51 @@ class Blockchain(Logger):
         p = self.path()
         self._size = os.path.getsize(p)//constants.net.HEADER_SIZE if os.path.exists(p) else 0
 
-    @classmethod
-    def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
+
+    def verify_header(self, header: dict, prev_hash: str, expected_header_hash: str=None, skip_auxpow: bool=False) -> None:
         _hash = hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
         if prev_hash != header.get('prev_block_hash'):
             raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
-        if constants.net.TESTNET:
+
+        if issubclass(constants.net, constants.StakeMixin) and constants.net.is_pos_active(header):
             return
-        bits = cls.target_to_bits(target)
+
+        target = self.get_target(header['block_height'])
+        bits = self.target_to_bits(target)
         if bits != header.get('bits'):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+
+        if issubclass(constants.net, constants.AuxPowMixin) and constants.net.is_auxpow_active(header):
+            _hash = auxpow.hash_parent_header(header)
+
         block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
         if block_hash_as_num > target:
             raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
-    def verify_chunk(self, index: int, data: bytes) -> None:
-        num = len(data) // constants.net.HEADER_SIZE
+    def verify_chunk(self, index: int, data: bytes) -> bytes:
+        stripped = bytearray()
+        start_position = 0
         start_height = index * 2016
         prev_hash = self.get_hash(start_height - 1)
-        target = self.get_target(index-1)
-        for i in range(num):
+        i = 0
+        while start_position < len(data):
             height = start_height + i
             try:
                 expected_header_hash = self.get_hash(height)
             except MissingHeader:
                 expected_header_hash = None
-            raw_header = data[i*constants.net.HEADER_SIZE : (i+1)*constants.net.HEADER_SIZE]
-            header = deserialize_header(raw_header, index*2016 + i)
-            self.verify_header(header, prev_hash, target, expected_header_hash)
+
+            # Strip auxpow header for disk
+            stripped.extend(data[start_position:start_position+constants.net.HEADER_SIZE])
+
+            header, start_position = deserialize_full_header(data, index*2016 + i, expect_trailing_data=True, start_position=start_position)
+            self.verify_header(header, prev_hash, expected_header_hash)
+            self.save_header(header)
             prev_hash = hash_header(header)
+            i = i + 1
+        return bytes(stripped)
 
     @with_lock
     def path(self):
@@ -444,8 +480,9 @@ class Blockchain(Logger):
     def save_header(self, header: dict) -> None:
         delta = header.get('block_height') - self.forkpoint
         data = bfh(serialize_header(header))
+        # FIXME remove after tests!! assert isn't needed as the chunk is saved header by header
         # headers are only _appended_ to the end:
-        assert delta == self.size(), (delta, self.size())
+        #assert delta == self.size(), (delta, self.size())
         assert len(data) == constants.net.HEADER_SIZE
         self.write(data, delta*constants.net.HEADER_SIZE)
         self.swap_with_parent()
@@ -468,7 +505,7 @@ class Blockchain(Logger):
                 raise Exception('Expected to read a full header. This was only {} bytes'.format(len(h)))
         if h == bytes([0])*constants.net.HEADER_SIZE:
             return None
-        return deserialize_header(h, height)
+        return deserialize_pure_header(h, height)
 
     def header_at_tip(self) -> Optional[dict]:
         """Return latest header."""
@@ -509,29 +546,8 @@ class Blockchain(Logger):
                 raise MissingHeader(height)
             return hash_header(header)
 
-    def get_target(self, index: int) -> int:
-        # compute target from chunk x, used in chunk x+1
-        if constants.net.TESTNET:
-            return 0
-        if index == -1:
-            return constants.net.MAX_TARGET
-        if index < len(self.checkpoints):
-            h, t = self.checkpoints[index]
-            return t
-        # new target
-        first = self.read_header(index * 2016)
-        last = self.read_header(index * 2016 + 2015)
-        if not first or not last:
-            raise MissingHeader()
-        bits = last.get('bits')
-        target = self.bits_to_target(bits)
-        nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nActualTimespan = max(nActualTimespan, constants.net.TARGET_TIMESPAN // 4)
-        nActualTimespan = min(nActualTimespan, constants.net.TARGET_TIMESPAN * 4)
-        new_target = min(constants.net.MAX_TARGET, (target * nActualTimespan) // constants.net.TARGET_TIMESPAN)
-        # not any target can be represented in 32 bits:
-        new_target = self.bits_to_target(self.target_to_bits(new_target))
-        return new_target
+    def get_target(self, height: int) -> int:
+        return constants.net.get_target(height, self)
 
     @classmethod
     def bits_to_target(cls, bits: int) -> int:
@@ -588,7 +604,7 @@ class Blockchain(Logger):
         work_in_last_partial_chunk = (height % 2016 + 1) * work_in_single_header
         return running_total + work_in_last_partial_chunk
 
-    def can_connect(self, header: dict, check_height: bool=True) -> bool:
+    def can_connect(self, header: dict, check_height: bool=True, skip_auxpow: bool=False) -> bool:
         if header is None:
             return False
         height = header['block_height']
@@ -603,11 +619,7 @@ class Blockchain(Logger):
         if prev_hash != header.get('prev_block_hash'):
             return False
         try:
-            target = self.get_target(height // 2016 - 1)
-        except MissingHeader:
-            return False
-        try:
-            self.verify_header(header, prev_hash, target)
+            self.verify_header(header, prev_hash, skip_auxpow=skip_auxpow)	
         except BaseException as e:
             return False
         return True
@@ -616,7 +628,8 @@ class Blockchain(Logger):
         assert idx >= 0, idx
         try:
             data = bfh(hexdata)
-            self.verify_chunk(idx, data)
+            # verify_chunk also strips the AuxPoW headers
+            data = self.verify_chunk(idx, data)
             self.save_chunk(idx, data)
             return True
         except BaseException as e:

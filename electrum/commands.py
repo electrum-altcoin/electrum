@@ -1100,6 +1100,10 @@ class Commands:
         """ return the local watchtower's ctn of channel. used in regtests """
         return await self.network.local_watchtower.sweepstore.get_ctn(channel_point, None)
 
+    @command('n')
+    async def get_checkpoints(self, file_path, wallet: Abstract_Wallet = None):
+        """ Dump checkpoints to a file """
+        return self.network.export_checkpoints(file_path)
 
 def eval_bool(x: str) -> bool:
     if x == 'false': return False
@@ -1174,6 +1178,8 @@ command_options = {
     'to_height':   (None, "Only show transactions that confirmed before given block height"),
     'iknowwhatimdoing': (None, "Acknowledge that I understand the full implications of what I am about to do"),
     'gossip':      (None, "Apply command to gossip node instead of wallet"),
+    'file_path':   (None, "Path to save the network checkpoints"),
+
 }
 
 
