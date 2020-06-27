@@ -1,0 +1,50 @@
+name: Release Build
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+jobs:
+  osx-build:
+    name: Build OSX Release Asset
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build project # This would actually build your project, using zip for an example artifact
+        run: |
+          cd electrum |
+          ./contrib/osx/make_osx
+          zip -r release dist
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: release.zip
+          
+  linux-build:
+    name: Build Linux Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Enter Code Directory:
+        run: cd electrum
+        
+      - name: Install Dependencies
+        run: sudo docker build -t electrum-appimage-builder-img contrib/build-linux/appimage
+        
+      - name: Build project
+        run: sudo docker run -it --name electrum-appimage-builder-cont -v $PWD:/opt/electrum --rm --workdir /opt/electrum/contrib/build-linux/appimage electrum-appimage-builder-img ./build.sh
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: ./dist
