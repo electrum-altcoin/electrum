@@ -33,7 +33,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Enter Code Directory:
+      - name: Enter Code Directory
         run: cd electrum
         
       - name: Install Dependencies
