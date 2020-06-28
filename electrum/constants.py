@@ -40,12 +40,12 @@ networks = {
     'Namecoin-Mainnet': NamecoinMainnet,
 }
 
-net = networks['Bitcoin']
+net = networks['Crowncoin']
 
 def select_network(network='Bitcoin'):
     if not network in networks:
         raise Exception('Invalid Network. Available: {}'.format(
             list(networks.keys())))
     global net
-    net = networks.get(network, 'Bitcoin')
+    net = networks.get(network, 'Crowncoin')
     return
