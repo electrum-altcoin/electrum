@@ -4,4 +4,7 @@ class StakeMixin(object):
 
     @classmethod
     def is_pos_active(cls, header) -> bool:
-        return cls.POS_START_HEIGHT and header['block_height'] >= cls.POS_START_HEIGHT 
+        if cls.POS_START_HEIGHT is None:
+            return False
+
+        return header['block_height'] >= cls.POS_START_HEIGHT

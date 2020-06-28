@@ -36,6 +36,8 @@ networks = {
     'Bitcoin-Simnet': BitcoinSimnet,
     'Crowncoin': CrowncoinMainnet,
     'Crowncoin-Mainnet': CrowncoinMainnet,
+    'Donu': DonuMainnet,
+    'Donu-Mainnet': DonuMainnet,
     'Namecoin': NamecoinMainnet,
     'Namecoin-Mainnet': NamecoinMainnet,
 }
