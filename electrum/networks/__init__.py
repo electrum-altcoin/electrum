@@ -3,6 +3,7 @@ from .bitcoin_testnet import BitcoinTestnet
 from .bitcoin_regtest import BitcoinRegtest
 from .bitcoin_simnet import BitcoinSimnet
 from .crowncoin_mainnet import CrowncoinMainnet
+from .donu_mainnet import DonuMainnet
 from .namecoin_mainnet import NamecoinMainnet
 from .auxpow_mixin import AuxPowMixin
 from .stake_mixin import StakeMixin
