@@ -43,6 +43,9 @@ datas = [
     (home+'electrum/plugins', 'electrum/plugins'),
     ('C:\\Program Files (x86)\\ZBar\\bin\\', '.'),
     (home+'electrum/gui/icons', 'electrum/gui/icons'),
+    (home+'electrum/networks/*.py', 'electrum/networks'),
+    (home+'electrum/servers/*.json', 'electrum/servers'),
+    (home+'electrum/checkpoints/*.json', 'electrum/checkpoints'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('safetlib')

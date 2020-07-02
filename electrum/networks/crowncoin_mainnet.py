@@ -7,12 +7,12 @@ from .stake_mixin import StakeMixin
 
 class CrowncoinMainnet(AbstractNet, AuxPowMixin, StakeMixin):
 
-    NAME = 'Crowncoin'
-    NAME_LOWER = 'crowncoin'
+    NAME = 'Crown'
+    NAME_LOWER = 'crown'
     SHORT_CODE = 'CRW'
     DATA_DIR = 'crowncoin'
     OPEN_ALIAS_PREFIX = 'crw'
-    PAYMENT_URI_SCHEME = 'crowncoin'
+    PAYMENT_URI_SCHEME = 'crown'
     PAYMENT_REQUEST_PKI_TYPE = "dnssec+crw"
     APPLICATION_PAYMENT_REQUEST_TYPE = 'application/crowncoin-paymentrequest'
     APPLICATION_PAYMENT_TYPE = 'application/crowncoin-payment'
