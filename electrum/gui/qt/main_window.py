@@ -734,6 +734,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         help_menu.addAction(_("&Report Bug"), self.show_report_bug)
         help_menu.addSeparator()
         help_menu.addAction(_("&Donate to server"), self.donate_to_server)
+        help_menu.addAction(_("&Donate to development"), self.donate_to_developer)
 
         self.setMenuBar(menubar)
 
@@ -744,6 +745,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.pay_to_URI('%s:%s?message=donation for %s'%(constants.net.PAYMENT_URI_SCHEME, d, host))
         else:
             self.show_error(_('No donation address for this server'))
+
+    def donate_to_developer(self):
+        if hasattr(constants.net, 'DEV_FEE_ADDRESS'):
+            self.pay_to_URI('%s:%s?message=donation' % (constants.net.PAYMENT_URI_SCHEME, constants.net.DEV_FEE_ADDRESS))
+        else:
+            self.show_error(_('No donation address for this coin'))
 
     def show_about(self):
         QMessageBox.about(self, "Electrum ({name})".format(name=constants.net.NAME),
