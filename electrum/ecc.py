@@ -26,6 +26,7 @@
 import base64
 import hashlib
 import functools
+import traceback
 from typing import Union, Tuple, Optional
 from ctypes import (
     byref, c_byte, c_int, c_uint, c_char_p, c_size_t, c_void_p, create_string_buffer,
@@ -384,6 +385,7 @@ def verify_message_with_address(address: str, sig65: bytes, message: bytes, *, n
         public_key.verify_message_hash(sig65[1:], h)
         return True
     except Exception as e:
+        traceback.print_exc()
         _logger.info(f"Verification error: {repr(e)}")
         return False
 
