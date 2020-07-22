@@ -149,7 +149,11 @@ class CrowncoinMainnet(AbstractNet, AuxPowMixin, StakeMixin):
 
     @classmethod
     def hash160_to_b58_address(cls, h160, addrtype) -> str:
-        s = addrtype + h160
+        if isinstance(addrtype, bytes):
+            s = addrtype
+        else:
+            s = bfh(addrtype)
+        s += h160
         return base_encode(s + Hash(s)[0:4], base=58)
 
     @classmethod
