@@ -148,8 +148,8 @@ class CrowncoinMainnet(AbstractNet, AuxPowMixin, StakeMixin):
         return new_target
 
     @classmethod
-    def hash160_to_b58_address(cls, h160: bytes, addrtype: int) -> str:
-        s =  bfh(addrtype) + h160
+    def hash160_to_b58_address(cls, h160, addrtype) -> str:
+        s = addrtype + h160
         return base_encode(s + Hash(s)[0:4], base=58)
 
     @classmethod

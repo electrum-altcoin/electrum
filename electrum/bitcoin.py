@@ -334,7 +334,7 @@ def Hash(x):
 
 ############ functions from pywallet #####################
 
-def hash160_to_b58_address(h160: bytes, addrtype: int) -> str:
+def hash160_to_b58_address(h160, addrtype) -> str:
     override = getattr(constants.net, 'hash160_to_b58_address', None)
     if callable(override):
         return override(h160, addrtype)
