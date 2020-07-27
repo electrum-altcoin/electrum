@@ -7,7 +7,7 @@ on:
   
 jobs:
   osx-build:
-    name: Build OSX Release Asset
+    name: Build Crown OSX Release Asset
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -31,10 +31,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: osx.zip
+          files: crown-osx.zip
           
   linux-build:
-    name: Build Linux Release Asset
+    name: Build Crown Linux Release Asset
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,10 +60,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: linux.zip
+          files: crown-linux.zip
 
   windows-build:
-    name: Build Windows Release Asset
+    name: Build Crown Windows Release Asset
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -89,4 +89,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: windows.zip
+          files: crown-windows.zip
