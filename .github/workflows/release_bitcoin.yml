@@ -13,11 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build project # This would actually build your project, using zip for an example artifact
-        run: |
-          cd electrum |
-          ./contrib/osx/make_osx
-          zip -r osx.zip dist
+      - name: Enter Codebase
+        run: cd electrum
+      
+      - name: Rename Constants
+        run: python3 buildmatrix_replacer.py Bitcoin
+      
+      - name: Run Build
+        run: ./contrib/osx/make_osx
+      
+      - name: Package Files for upload
+        run: zip -r bitcoin-osx.zip dist
+      
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -35,6 +42,9 @@ jobs:
 
       - name: Enter Code Directory
         run: cd electrum
+
+      - name: Rename Constants
+        run: python3 buildmatrix_replacer.py Bitcoin
         
       - name: Install Dependencies
         run: sudo docker build -t electrum-appimage-builder-img contrib/build-linux/appimage
@@ -43,7 +53,7 @@ jobs:
         run: sudo docker run --name electrum-appimage-builder-cont -v $PWD:/opt/electrum --rm --workdir /opt/electrum/contrib/build-linux/appimage electrum-appimage-builder-img ./build.sh
 
       - name: Zip Files
-        run: zip -r linux.zip dist
+        run: zip -r bitcoin-linux.zip dist
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -61,6 +71,9 @@ jobs:
 
       - name: Enter Code Directory
         run: cd electrum
+
+      - name: Rename Constants
+        run: python3 buildmatrix_replacer.py Bitcoin
         
       - name: Install Dependencies
         run: sudo docker build -t electrum-wine-builder-img contrib/build-wine
@@ -69,7 +82,7 @@ jobs:
         run: sudo docker run --name electrum-wine-builder-cont -v $PWD:/opt/wine64/drive_c/electrum --rm --workdir /opt/wine64/drive_c/electrum/contrib/build-wine electrum-wine-builder-img ./build.sh
 
       - name: Zip Files
-        run: zip -r windows.zip ./contrib/build-wine/dist
+        run: zip -r bitcoin-windows.zip ./contrib/build-wine/dist
 
       - name: Release
         uses: softprops/action-gh-release@v1
