@@ -26,6 +26,7 @@
 import base64
 import hashlib
 import functools
+import traceback
 from typing import Union, Tuple, Optional
 from ctypes import (
     byref, c_byte, c_int, c_uint, c_char_p, c_size_t, c_void_p, create_string_buffer,
@@ -369,12 +370,16 @@ def verify_message_with_address(address: str, sig65: bytes, message: bytes, *, n
     from .bitcoin import pubkey_to_address
     assert_bytes(sig65, message)
     if net is None: net = constants.net
+    valid_tx_types = ['p2pkh']
+    if net.is_segwit_enabled():
+        valid_tx_types += ['p2wpkh', 'p2wpkh-p2sh']
+
     try:
         h = sha256d(msg_magic(message))
         public_key, compressed = ECPubkey.from_signature65(sig65, h)
         # check public key using the address
         pubkey_hex = public_key.get_public_key_hex(compressed)
-        for txin_type in ['p2pkh','p2wpkh','p2wpkh-p2sh']:
+        for txin_type in valid_tx_types:
             addr = pubkey_to_address(txin_type, pubkey_hex, net=net)
             if address == addr:
                 break
@@ -384,6 +389,7 @@ def verify_message_with_address(address: str, sig65: bytes, message: bytes, *, n
         public_key.verify_message_hash(sig65[1:], h)
         return True
     except Exception as e:
+        traceback.print_exc()
         _logger.info(f"Verification error: {repr(e)}")
         return False
 
