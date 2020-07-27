@@ -7,7 +7,7 @@ on:
   
 jobs:
   osx-build:
-    name: Build Crown OSX Release Asset
+    name: Build Crowncoin OSX Release Asset
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -17,7 +17,7 @@ jobs:
         run: cd electrum
       
       - name: Rename Constants
-        run: python3 buildmatrix_replacer.py Crown
+        run: python3 buildmatrix_replacer.py Crowncoin
       
       - name: Run Build
         run: ./contrib/osx/make_osx
@@ -34,7 +34,7 @@ jobs:
           files: crown-osx.zip
           
   linux-build:
-    name: Build Crown Linux Release Asset
+    name: Build Crowncoin Linux Release Asset
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -44,7 +44,7 @@ jobs:
         run: cd electrum
 
       - name: Rename Constants
-        run: python3 buildmatrix_replacer.py Crown
+        run: python3 buildmatrix_replacer.py Crowncoin
         
       - name: Install Dependencies
         run: sudo docker build -t electrum-appimage-builder-img contrib/build-linux/appimage
@@ -63,7 +63,7 @@ jobs:
           files: crown-linux.zip
 
   windows-build:
-    name: Build Crown Windows Release Asset
+    name: Build Crowncoin Windows Release Asset
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -73,7 +73,7 @@ jobs:
         run: cd electrum
 
       - name: Rename Constants
-        run: python3 buildmatrix_replacer.py Crown
+        run: python3 buildmatrix_replacer.py Crowncoin
         
       - name: Install Dependencies
         run: sudo docker build -t electrum-wine-builder-img contrib/build-wine

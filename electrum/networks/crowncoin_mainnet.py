@@ -10,13 +10,13 @@ class CrowncoinMainnet(AbstractNet, AuxPowMixin, StakeMixin):
     NAME = 'Crown'
     NAME_LOWER = 'crown'
     SHORT_CODE = 'CRW'
-    DATA_DIR = 'crowncoin'
+    DATA_DIR = 'crown'
     OPEN_ALIAS_PREFIX = 'crw'
     PAYMENT_URI_SCHEME = 'crown'
     PAYMENT_REQUEST_PKI_TYPE = "dnssec+crw"
-    APPLICATION_PAYMENT_REQUEST_TYPE = 'application/crowncoin-paymentrequest'
-    APPLICATION_PAYMENT_TYPE = 'application/crowncoin-payment'
-    APPLICATION_PAYMENT_ACK_TYPE = 'application/crowncoin-paymentack'
+    APPLICATION_PAYMENT_REQUEST_TYPE = 'application/crown-paymentrequest'
+    APPLICATION_PAYMENT_TYPE = 'application/crown-payment'
+    APPLICATION_PAYMENT_ACK_TYPE = 'application/crown-paymentack'
     BASE_UNITS = {'CRW': 8, 'mCRW': 5, 'uCRW': 2, 'swartz': 0}
     BASE_UNITS_INVERSE = inv_dict(BASE_UNITS)
     BASE_UNITS_LIST = ['CRW', 'mCRW', 'uCRW', 'swartz']

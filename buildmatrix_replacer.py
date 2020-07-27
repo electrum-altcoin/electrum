@@ -1,7 +1,8 @@
+import sys
 from pathlib import Path
 
 replacement_args = {
-    "{{buildmatrix_coin_name_normal}}": "Crown",
+    "{{buildmatrix_coin_name_normal}}": sys.argv[1],
 }
 
 def inplace_change(filename, old_string, new_string):
