@@ -44,10 +44,10 @@ networks = {
 
 net = networks['Bitcoin']
 
-def select_network(network='Bitcoin'):
+def select_network(network='{{buildmatrix_coin_name_normal}}'):
     if not network in networks:
         raise Exception('Invalid Network. Available: {}'.format(
             list(networks.keys())))
     global net
-    net = networks.get(network, 'Bitcoin')
+    net = networks.get(network, '{{buildmatrix_coin_name_normal}}')
     return

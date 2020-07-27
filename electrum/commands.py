@@ -1292,7 +1292,7 @@ def add_global_options(parser):
     group.add_argument("-V", dest="verbosity_shortcuts", help="Set verbosity (shortcut-filter list)", default='')
     group.add_argument("-D", "--dir", dest="electrum_path", help="electrum directory")
     group.add_argument("-P", "--portable", action="store_true", dest="portable", default=False, help="Use local 'electrum_data' directory")
-    group.add_argument("--network", dest="network", default="Bitcoin", help="Select Network", choices=list(constants.networks.keys()))
+    group.add_argument("--network", dest="network", default="{{buildmatrix_coin_name_normal}}", help="Select Network", choices=list(constants.networks.keys()))
     group.add_argument("-o", "--offline", action="store_true", dest="offline", default=False, help="Run offline")
 
 def add_wallet_option(parser):
