@@ -92,6 +92,9 @@ def hash_header(header: dict) -> str:
 
 
 def hash_raw_header(header: str) -> str:
+    override = getattr(constants.net, 'hash_raw_header', None)
+    if override:
+        return override(header)
     return hash_encode(sha256d(bfh(header)))
 
 
