@@ -48,4 +48,9 @@ class AbosomMainnet(AbstractNet, StakeMixin):
     COIN = 1000000
     TOTAL_COIN_SUPPLY_LIMIT = 110000000
     SIGNED_MESSAGE_PREFIX = b"\x18Abosom Signed Message:\n"
+    DECIMAL_POINT_DEFAULT = 8 # CRW
+    POS_START_HEIGHT = 1
 
+        BLOCK_EXPLORERS = {
+        'system default': ('blockchain:/', {'tx': 'tx/', 'addr': 'address/'}),
+    }
