@@ -1,6 +1,7 @@
-from electrum.util import inv_dict, read_json
+from electrum.util import inv_dict, read_json, bfh
 from .abstract_network import AbstractNet
 from .stake_mixin import StakeMixin
+from ..bitcoin import hash_encode
 
 
 class AbosomMainnet(AbstractNet, StakeMixin):
@@ -50,3 +51,8 @@ class AbosomMainnet(AbstractNet, StakeMixin):
     BLOCK_EXPLORERS = {
         'system default': ('blockchain:/', {'tx': 'tx/', 'addr': 'address/'}),
     }
+
+    @classmethod
+    def hash_raw_header(cls, header):
+        from x11_hash import getPoWHash
+        return hash_encode(getPoWHash(bfh(header)))
