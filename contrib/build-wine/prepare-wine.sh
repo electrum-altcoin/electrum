@@ -9,6 +9,9 @@ ZBAR_FILENAME=zbarw-20121031-setup.exe
 ZBAR_URL=https://sourceforge.net/projects/zbarw/files/$ZBAR_FILENAME/download
 ZBAR_SHA256=177e32b272fa76528a3af486b74e9cb356707be1c5ace4ed3fcee9723e2c2c02
 
+CPLUSPLUS_TOOLS_FILENAME=vs_buildtools.exe
+CPLUSPLUS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
+
 LIBUSB_REPO="https://github.com/libusb/libusb.git"
 LIBUSB_COMMIT=e782eeb2514266f6738e242cdcb18e3ae1ed06fa
 # ^ tag v1.0.23
@@ -73,6 +76,9 @@ download_if_not_exist "$CACHEDIR/$NSIS_FILENAME" "$NSIS_URL"
 verify_hash "$CACHEDIR/$NSIS_FILENAME" "$NSIS_SHA256"
 wine "$CACHEDIR/$NSIS_FILENAME" /S
 
+info "Installing Visual Studio C++ Build Tools"
+download_if_not_exist "$CACHEDIR/$CPLUSPLUS_TOOLS_FILENAME" "$CPLUSPLUS_URL"
+wine "$CACHEDIR/$CPLUSPLUS_TOOLS_FILENAME" /S
 
 info "Compiling libusb..."
 (
