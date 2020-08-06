@@ -77,8 +77,10 @@ verify_hash "$CACHEDIR/$NSIS_FILENAME" "$NSIS_SHA256"
 wine "$CACHEDIR/$NSIS_FILENAME" /S
 
 info "Installing Visual Studio C++ Build Tools"
-download_if_not_exist "$CACHEDIR/$CPLUSPLUS_TOOLS_FILENAME" "$CPLUSPLUS_URL"
-wine "$CACHEDIR/$CPLUSPLUS_TOOLS_FILENAME" /S
+winetricks dotnet46 --force -q
+download_if_not_exist vs_buildtools.exe "https://aka.ms/vs/16/release/vs_buildtools.exe"
+wine "$PWD/vs_buildtools.exe" --quiet --wait --norestart --nocache -all --installPath C:\BuildTools
+wine "C:\BuildTools\Common7\Tools\VsDevCmd.bat"
 
 info "Compiling libusb..."
 (

@@ -2,8 +2,10 @@ name: Release Build
 
 on:
   push:
+    branches:
     tags:
       - 'v*.*.*'
+
   
 jobs:
   osx-build:
