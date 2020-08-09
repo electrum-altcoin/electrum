@@ -136,7 +136,7 @@ python3 -m pip install --no-dependencies -Ir ./contrib/deterministic-build/requi
 
 info "Installing Algo Module"
 download_if_not_exist "$CACHEDIR/$ALGOMODULE_FILENAME" "$ALGOMODULE_URL"
-$PYTHON -m pip install "$CACHEDIR/$ALGOMODULE_FILENAME"
+python3 -m pip install "$CACHEDIR/$ALGOMODULE_FILENAME"
 
 info "Installing hardware wallet requirements..."
 python3 -m pip install --no-dependencies -Ir ./contrib/deterministic-build/requirements-hw.txt --user \
