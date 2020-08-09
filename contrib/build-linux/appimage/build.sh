@@ -112,6 +112,14 @@ info "preparing electrum-locale."
     popd
 )
 
+info "Installing Algo Module"
+(
+  cd "$CACHEDIR"
+  git clone https://github.com/electrum-altcoin/algolib
+  pushd "$CONTRIB"/algolib
+  "$python" setup.py install
+  popd
+)
 
 info "installing electrum and its dependencies."
 mkdir -p "$CACHEDIR/pip_cache"
@@ -119,7 +127,6 @@ mkdir -p "$CACHEDIR/pip_cache"
 "$python" -m pip install --no-dependencies --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
 "$python" -m pip install --no-dependencies --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
 "$python" -m pip install --no-dependencies --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "$PROJECT_ROOT"
-"$python" -m pip install algomodule==1.0.2
 
 # was only needed during build time, not runtime
 "$python" -m pip uninstall -y Cython
