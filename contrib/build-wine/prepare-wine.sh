@@ -9,9 +9,6 @@ ZBAR_FILENAME=zbarw-20121031-setup.exe
 ZBAR_URL=https://sourceforge.net/projects/zbarw/files/$ZBAR_FILENAME/download
 ZBAR_SHA256=177e32b272fa76528a3af486b74e9cb356707be1c5ace4ed3fcee9723e2c2c02
 
-CPLUSPLUS_TOOLS_FILENAME=vs_buildtools.exe
-CPLUSPLUS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
-
 LIBUSB_REPO="https://github.com/libusb/libusb.git"
 LIBUSB_COMMIT=e782eeb2514266f6738e242cdcb18e3ae1ed06fa
 # ^ tag v1.0.23
@@ -20,6 +17,8 @@ PYINSTALLER_REPO="https://github.com/SomberNight/pyinstaller.git"
 PYINSTALLER_COMMIT=e934539374e30d1500fcdbe8e4eb0860413935b2
 # ^ tag 3.6, plus a custom commit that fixes cross-compilation with MinGW
 
+ALGOMODULE_URL="https://files.pythonhosted.org/packages/89/7d/b7fd066cbfe86afa988ad6456df6ab7ba9b63ac498498c2f759519ca6cb0/algomodule-1.0.2-cp37-cp37m-win32.whl"
+ALGOMODULE_FILENAME="algomodule-1.0.2-cp37-cp37m-win32.whl"
 PYTHON_VERSION=3.7.7
 
 ## These settings probably don't need change
@@ -66,6 +65,10 @@ $PYTHON -m pip install --no-dependencies --no-warn-script-location -r "$CONTRIB"
 info "Installing dependencies specific to binaries."
 $PYTHON -m pip install --no-dependencies --no-warn-script-location -r "$CONTRIB"/deterministic-build/requirements-binaries.txt
 
+info "Installing Algo Module"
+download_if_not_exist "$CACHEDIR/$ALGOMODULE_FILENAME" "$ALGOMODULE_URL"
+$PYTHON -m pip install "$CACHEDIR/$ALGOMODULE_FILENAME"
+
 info "Installing ZBar."
 download_if_not_exist "$CACHEDIR/$ZBAR_FILENAME" "$ZBAR_URL"
 verify_hash "$CACHEDIR/$ZBAR_FILENAME" "$ZBAR_SHA256"
@@ -75,12 +78,6 @@ info "Installing NSIS."
 download_if_not_exist "$CACHEDIR/$NSIS_FILENAME" "$NSIS_URL"
 verify_hash "$CACHEDIR/$NSIS_FILENAME" "$NSIS_SHA256"
 wine "$CACHEDIR/$NSIS_FILENAME" /S
-
-info "Installing Visual Studio C++ Build Tools"
-winetricks dotnet46 --force -q
-download_if_not_exist vs_buildtools.exe "https://aka.ms/vs/16/release/vs_buildtools.exe"
-wine "$PWD/vs_buildtools.exe" --quiet --wait --norestart --nocache -all --installPath C:\BuildTools
-wine "C:\BuildTools\Common7\Tools\VsDevCmd.bat"
 
 info "Compiling libusb..."
 (

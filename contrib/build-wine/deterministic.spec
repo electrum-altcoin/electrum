@@ -24,6 +24,7 @@ hiddenimports += collect_submodules('keepkeylib')
 hiddenimports += collect_submodules('websocket')
 hiddenimports += collect_submodules('ckcc')
 hiddenimports += collect_submodules('bitbox02')
+hiddenimports += collect_submodules('algomodule')
 hiddenimports += ['PyQt5.QtPrintSupport']  # needed by Revealer
 
 
