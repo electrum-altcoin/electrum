@@ -73,6 +73,7 @@ a = Analysis([home+'run_electrum',
               home+'electrum/plugins/keepkey/qt.py',
               home+'electrum/plugins/ledger/qt.py',
               home+'electrum/plugins/coldcard/qt.py',
+              home+'electrum/networks/abosom_mainnet.py',
               #home+'packages/requests/utils.py'
               ],
              binaries=binaries,
@@ -121,11 +122,11 @@ exe_standalone = EXE(
     a.binaries,
     a.datas,
     name=os.path.join('build\\pyi.win32\\electrum', cmdline_name + ".exe"),
-    debug=False,
+    debug=True,
     strip=None,
     upx=False,
     icon=home+'electrum/gui/icons/electrum.ico',
-    console=False)
+    console=True)
     # console=True makes an annoying black box pop up, but it does make Electrum output command line commands, with this turned off no output will be given but commands can still be used
 
 exe_portable = EXE(
@@ -134,11 +135,11 @@ exe_portable = EXE(
     a.binaries,
     a.datas + [ ('is_portable', 'README.md', 'DATA' ) ],
     name=os.path.join('build\\pyi.win32\\electrum', cmdline_name + "-portable.exe"),
-    debug=False,
+    debug=True,
     strip=None,
     upx=False,
     icon=home+'electrum/gui/icons/electrum.ico',
-    console=False)
+    console=True)
 
 #####
 # exe and separate files that NSIS uses to build installer "setup" exe
@@ -148,11 +149,11 @@ exe_dependent = EXE(
     a.scripts,
     exclude_binaries=True,
     name=os.path.join('build\\pyi.win32\\electrum', cmdline_name),
-    debug=False,
+    debug=True,
     strip=None,
     upx=False,
     icon=home+'electrum/gui/icons/electrum.ico',
-    console=False)
+    console=True)
 
 coll = COLLECT(
     exe_dependent,
@@ -161,7 +162,7 @@ coll = COLLECT(
     a.datas,
     strip=None,
     upx=True,
-    debug=False,
+    debug=True,
     icon=home+'electrum/gui/icons/electrum.ico',
-    console=False,
+    console=True,
     name=os.path.join('dist', 'electrum'))

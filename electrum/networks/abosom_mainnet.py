@@ -59,8 +59,8 @@ class AbosomMainnet(AbstractNet, StakeMixin):
 
     @classmethod
     def hash_raw_header(cls, header):
-        from x11_hash import getPoWHash
-        return hash_encode(getPoWHash(bfh(header)))
+        import algomodule
+        return hash_encode(algomodule._x11_hash(bfh(header)))
 
     @classmethod
     def is_pos_active(cls, header) -> bool:

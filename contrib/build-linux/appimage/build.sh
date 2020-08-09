@@ -119,6 +119,7 @@ mkdir -p "$CACHEDIR/pip_cache"
 "$python" -m pip install --no-dependencies --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
 "$python" -m pip install --no-dependencies --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
 "$python" -m pip install --no-dependencies --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "$PROJECT_ROOT"
+$PYTHON -m pip install algomodule==1.0.2
 
 # was only needed during build time, not runtime
 "$python" -m pip uninstall -y Cython
