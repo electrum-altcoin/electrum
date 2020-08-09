@@ -7,7 +7,7 @@ PACKAGE=Electrum
 GIT_REPO=https://github.com/spesmilo/electrum
 
 ALGOMODULE_URL="https://files.pythonhosted.org/packages/d8/79/192fc63f8a9bbb55a751799c325a39f63f9a7bec8fae8f79470c15efdf55/algomodule-1.0.2-cp37-cp37m-macosx_10_15_x86_64.whl"
-ALGOMODULE_FILENAME="7d253b452d7575939e504ddce1c4365841c4513e18c673b7e891d9484f479fab"
+ALGOMODULE_FILENAME="algomodule-1.0.2-cp37-cp37m-macosx_10_15_x86_64.whl"
 
 export GCC_STRIP_BINARIES="1"
 
