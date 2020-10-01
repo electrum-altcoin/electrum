@@ -22,7 +22,13 @@ Electrum - Lightweight CryptoCurrency client
 
 
 
-
+Supported Networks
+==================
+.. Abosum
+.. Bitcoin
+.. Crown
+.. Donu
+.. Namecoin
 
 Getting started
 ===============
