@@ -1,20 +1,20 @@
 {
+    "electrum1.crownplatform.com": {
+        "pruning": "-",
+        "s": "50002",
+        "t": "50001",
+        "version": "1.4"
+    },
+    "electrum2.crownplatform.com": {
+        "pruning": "-",
+        "s": "50002",
+        "t": "50001",
+        "version": "1.4"
+    },
     "crown.electrumx.multicoin.co": {
         "pruning": "-",
         "s": "50022",
         "t": "50021",
-        "version": "1.4"
-    },
-    "electrumx1.crownplatform.com": {
-        "pruning": "-",
-        "s": "50002",
-        "t": "50001",
-        "version": "1.4"
-    },
-    "electrumx2.crownplatform.com": {
-        "pruning": "-",
-        "s": "50002",
-        "t": "50001",
         "version": "1.4"
     }
 } 
