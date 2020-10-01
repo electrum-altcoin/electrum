@@ -29,6 +29,8 @@ GIT_REPO_URL = "https://github.com/spesmilo/electrum"
 GIT_REPO_ISSUES_URL = "https://github.com/spesmilo/electrum/issues"
 
 networks = {
+    'Abosom': AbosomMainnet,
+    'Abosom-Mainnet': AbosomMainnet,
     'Bitcoin': BitcoinMainnet,
     'Bitcoin-Mainnet': BitcoinMainnet,
     'Bitcoin-Testnet': BitcoinTestnet,

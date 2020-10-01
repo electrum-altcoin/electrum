@@ -112,6 +112,14 @@ info "preparing electrum-locale."
     popd
 )
 
+info "Installing Algo Module"
+(
+  cd "$CACHEDIR"
+  git clone https://github.com/electrum-altcoin/algolib "$CONTRIB/algolib"
+  pushd "$CONTRIB"/algolib
+  "$python" setup.py install
+  popd
+)
 
 info "installing electrum and its dependencies."
 mkdir -p "$CACHEDIR/pip_cache"

@@ -4,3 +4,4 @@ pyinstaller>=3.6
 
 # needed by pyinstaller:
 macholib
+Cython==0.29.21

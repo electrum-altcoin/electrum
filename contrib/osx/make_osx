@@ -6,6 +6,9 @@ BUILDDIR=/tmp/electrum-build
 PACKAGE=Electrum
 GIT_REPO=https://github.com/spesmilo/electrum
 
+ALGOMODULE_URL="https://files.pythonhosted.org/packages/d8/79/192fc63f8a9bbb55a751799c325a39f63f9a7bec8fae8f79470c15efdf55/algomodule-1.0.2-cp37-cp37m-macosx_10_15_x86_64.whl"
+ALGOMODULE_FILENAME="algomodule-1.0.2-cp37-cp37m-macosx_10_15_x86_64.whl"
+
 export GCC_STRIP_BINARIES="1"
 
 
@@ -130,6 +133,10 @@ DoCodeSignMaybe "CalinsQRReader.app" "${d}/build/Release/CalinsQRReader.app"
 info "Installing requirements..."
 python3 -m pip install --no-dependencies -Ir ./contrib/deterministic-build/requirements.txt --user \
     || fail "Could not install requirements"
+
+info "Installing Algo Module"
+download_if_not_exist "$BUILDDIR/$ALGOMODULE_FILENAME" "$ALGOMODULE_URL"
+python3 -m pip install "$BUILDDIR/$ALGOMODULE_FILENAME" --user || fail "Could not install Algo Module"
 
 info "Installing hardware wallet requirements..."
 python3 -m pip install --no-dependencies -Ir ./contrib/deterministic-build/requirements-hw.txt --user \

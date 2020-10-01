@@ -1,3 +1,4 @@
+from .abosom_mainnet import AbosomMainnet
 from .bitcoin_mainnet import BitcoinMainnet
 from .bitcoin_testnet import BitcoinTestnet
 from .bitcoin_regtest import BitcoinRegtest

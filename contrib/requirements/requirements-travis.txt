@@ -1,3 +1,4 @@
 tox
 coveralls
 tox-travis
+Cython==0.29.21
